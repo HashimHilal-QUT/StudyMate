@@ -82,13 +82,7 @@ html, body {
   background: linear-gradient(135deg, rgba(5,8,16,0.83) 0%, rgba(5,8,16,0.58) 50%, rgba(5,8,16,0.82) 100%);
 }
 
-.landing-content {
-  position: relative; z-index: 10;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  min-height: 100vh; text-align: center;
-  padding: 40px 24px; color: var(--text);
-}
+/* .landing-content fully defined in split-layout block below */
 
 .logo-mark {
   width: 56px; height: 56px;
@@ -787,6 +781,9 @@ textarea.field { color: var(--cyan) !important; }
 #page-landing {
   display: flex;
   flex-direction: column;
+  align-items: center;        /* centre everything horizontally */
+  justify-content: center;    /* centre vertically when content < viewport */
+  min-height: 100vh;
   overflow-x: hidden;
   overflow-y: auto;
 }
@@ -796,43 +793,57 @@ textarea.field { color: var(--cyan) !important; }
   z-index: 2;
   display: flex;
   flex-direction: column;
+  align-items: center;        /* centre children on mobile */
   width: 100%;
-  max-width: 1400px;
+  max-width: 1300px;
   margin: 0 auto;
-  padding: 2.5rem 2rem;
+  padding: 3rem 1.5rem;
   box-sizing: border-box;
-  flex-grow: 1;
   justify-content: center;
   gap: 2.5rem;
   min-height: 100vh;
 }
 
-/* On desktop: side-by-side */
+/* On desktop: side-by-side, centred together */
 @media (min-width: 992px) {
   .landing-split-container {
     flex-direction: row;
     align-items: center;
+    justify-content: center;
     padding: 3rem 3rem;
-    gap: 3rem;
+    gap: 4rem;
   }
-  .landing-content  { width: 44%; flex-shrink: 0; }
-  .landing-showcase { width: 56%; flex-shrink: 0; }
+  .landing-content  { width: 42%; flex-shrink: 0; }
+  .landing-showcase { width: 52%; flex-shrink: 0; }
 }
 
 .landing-content {
   width: 100%;
-  max-width: 560px;
+  max-width: 520px;
   color: white;
-  /* Reset old absolute/flex-center overrides */
   position: static;
-  text-align: left;
+  /* Centre text on mobile, left-align on desktop */
+  text-align: center;
   padding: 0;
-  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* On desktop switch content to left-aligned */
+@media (min-width: 992px) {
+  .landing-content {
+    text-align: left;
+    align-items: flex-start;
+  }
+  .landing-actions { justify-content: flex-start; }
+  .landing-desc    { margin-left: 0; }
 }
 
 /* Stats pill — keep horizontal on all sizes */
 .landing-stats {
   flex-wrap: nowrap;
+  justify-content: center;
 }
 
 .landing-showcase {
