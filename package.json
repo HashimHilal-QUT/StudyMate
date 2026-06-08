@@ -3,13 +3,11 @@
   "version": "1.0.0",
   "description": "StudyMate - Find your perfect study buddy",
   "scripts": {
-    "dev": "netlify dev"
+    "build": "echo 'No build step required'"
   },
   "dependencies": {
     "@azure/data-tables": "^13.2.2",
-    "@azure/storage-blob": "^12.17.0"
-  },
-  "devDependencies": {
-    "netlify-cli": "^17.0.0"
+    "@azure/storage-blob": "^12.17.0",
+    "uuid": "^9.0.0"
   }
 }
