@@ -304,7 +304,8 @@ html, body {
 
 /* ======================== GALLERY ======================== */
 .gallery-content {
-  flex: 1; overflow-y: auto; padding: 24px 20px 60px;
+  flex: 1; overflow-y: auto;
+  padding: 24px 20px 60px;          /* base — overridden below for wide screens */
   background: var(--deep);
 }
 
@@ -700,22 +701,22 @@ html, body {
 }
 
 /* Positions — left column top/mid/bottom, right column top/mid/bottom */
-.bf-tl { width: 110px; height: 145px; top: 64px;  left: 6px; }
-.bf-ml { width: 110px; height: 145px; top: 50%;   left: 6px; transform: translateY(-50%); }
-.bf-bl { width: 110px; height: 145px; bottom: 6px; left: 6px; }
-.bf-tr { width: 110px; height: 145px; top: 64px;  right: 6px; }
-.bf-mr { width: 110px; height: 145px; top: 50%;   right: 6px; transform: translateY(-50%); }
-.bf-br { width: 110px; height: 145px; bottom: 6px; right: 6px; }
+.bf-tl { width: 120px; height: 170px; top: 68px;  left: 0; border-left: none; border-radius: 0 10px 10px 0; }
+.bf-ml { width: 120px; height: 170px; top: 50%;   left: 0; transform: translateY(-50%); border-left: none; border-radius: 0 10px 10px 0; }
+.bf-bl { width: 120px; height: 170px; bottom: 6px; left: 0; border-left: none; border-radius: 0 10px 10px 0; }
+.bf-tr { width: 120px; height: 170px; top: 68px;  right: 0; border-right: none; border-radius: 10px 0 0 10px; }
+.bf-mr { width: 120px; height: 170px; top: 50%;   right: 0; transform: translateY(-50%); border-right: none; border-radius: 10px 0 0 10px; }
+.bf-br { width: 120px; height: 170px; bottom: 6px; right: 0; border-right: none; border-radius: 10px 0 0 10px; }
 
 /* On narrow screens hide middle pair to avoid overlap */
 @media (max-width: 540px) {
-  .bf { width: 70px; height: 95px; }
-  .bf-tl { top: 58px; left: 2px; }
-  .bf-ml { left: 2px; }
-  .bf-bl { left: 2px; }
-  .bf-tr { top: 58px; right: 2px; }
-  .bf-mr { right: 2px; }
-  .bf-br { right: 2px; }
+  .bf { width: 72px; height: 100px; }
+  .bf-tl { top: 56px; left: 0; }
+  .bf-ml { left: 0; }
+  .bf-bl { left: 0; }
+  .bf-tr { top: 56px; right: 0; }
+  .bf-mr { right: 0; }
+  .bf-br { right: 0; }
 }
 @media (max-width: 380px) {
   .bf-ml, .bf-mr { display: none; }
@@ -904,3 +905,48 @@ textarea.field { color: var(--cyan) !important; }
 @media (min-width: 600px)  { .gallery-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (min-width: 900px)  { .gallery-grid { grid-template-columns: repeat(4, 1fr); } }
 @media (min-width: 1200px) { .gallery-grid { grid-template-columns: repeat(5, 1fr); } }
+
+/* ================================================
+   CONTENT CLEARANCE FOR BORDER FRAMES
+   On screens wide enough to show the frames (≥ 600px),
+   push all inner-page content inward so frames never
+   overlap headings, grids, or form fields.
+   ================================================ */
+@media (min-width: 600px) {
+  /* Gallery: header + content area */
+  .app-header {
+    padding-left: 136px;
+    padding-right: 136px;
+  }
+  .gallery-content {
+    padding-left: 140px;
+    padding-right: 140px;
+  }
+  /* Registration / Edit page inner content */
+  .reg-header {
+    padding-left: 136px;
+    padding-right: 136px;
+  }
+  .page-inner {
+    padding-left: 152px;
+    padding-right: 152px;
+    max-width: 100%;       /* let padding do the constraining */
+  }
+  /* Modals are centred over the dim overlay — no change needed */
+}
+
+/* On very wide screens, frames are 120px each side, so even more room */
+@media (min-width: 900px) {
+  .app-header    { padding-left: 144px; padding-right: 144px; }
+  .gallery-content { padding-left: 148px; padding-right: 148px; }
+  .reg-header    { padding-left: 144px; padding-right: 144px; }
+  .page-inner    { padding-left: 160px; padding-right: 160px; }
+}
+
+/* On small screens frames are hidden or very narrow — restore normal padding */
+@media (max-width: 599px) {
+  .app-header    { padding-left: 14px; padding-right: 14px; }
+  .gallery-content { padding-left: 14px; padding-right: 14px; }
+  .reg-header    { padding-left: 14px; padding-right: 14px; }
+  .page-inner    { padding-left: 14px; padding-right: 14px; }
+}
