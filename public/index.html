@@ -30,44 +30,54 @@
       <div class="bg-orb orb-1"></div>
       <div class="bg-orb orb-2"></div>
       <div class="bg-orb orb-3"></div>
-      <div class="bg-photos">
-        <div class="photo-card pc-1"><img src="https://myresearchdata.blob.core.windows.net/studymate-static/Image001.jpg" alt="" /><div class="photo-scan"></div></div>
-        <div class="photo-card pc-2"><img src="https://myresearchdata.blob.core.windows.net/studymate-static/Image002.jpg" alt="" /><div class="photo-scan"></div></div>
-        <div class="photo-card pc-3"><img src="https://myresearchdata.blob.core.windows.net/studymate-static/Image003.jpg" alt="" /><div class="photo-scan"></div></div>
-        <div class="photo-card pc-4"><img src="https://myresearchdata.blob.core.windows.net/studymate-static/Image004.jpg" alt="" /><div class="photo-scan"></div></div>
-        <div class="photo-card pc-5"><img src="https://myresearchdata.blob.core.windows.net/studymate-static/Image005.jpg" alt="" /><div class="photo-scan"></div></div>
-        <div class="photo-card pc-6"><img src="https://myresearchdata.blob.core.windows.net/studymate-static/Image006.jpg" alt="" /><div class="photo-scan"></div></div>
-      </div>
       <div class="landing-overlay"></div>
     </div>
-    <div class="landing-content">
-      <div class="logo-mark">
-        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="20" cy="20" r="18" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 2"/>
-          <circle cx="20" cy="20" r="6" fill="currentColor" opacity="0.9"/>
-          <line x1="20" y1="2" x2="20" y2="10" stroke="currentColor" stroke-width="1.5"/>
-          <line x1="20" y1="30" x2="20" y2="38" stroke="currentColor" stroke-width="1.5"/>
-          <line x1="2" y1="20" x2="10" y2="20" stroke="currentColor" stroke-width="1.5"/>
-          <line x1="30" y1="20" x2="38" y2="20" stroke="currentColor" stroke-width="1.5"/>
-        </svg>
+
+    <div class="landing-split-container">
+
+      <!-- LEFT: branding + CTAs -->
+      <div class="landing-content">
+        <div class="logo-mark">
+          <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="20" cy="20" r="18" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 2"/>
+            <circle cx="20" cy="20" r="6" fill="currentColor" opacity="0.9"/>
+            <line x1="20" y1="2" x2="20" y2="10" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="20" y1="30" x2="20" y2="38" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="2" y1="20" x2="10" y2="20" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="30" y1="20" x2="38" y2="20" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+        </div>
+        <div class="ai-badge">◆ AI-POWERED MATCHING</div>
+        <h1 class="landing-title">My Study<br/><span class="accent">Friends</span></h1>
+        <p class="landing-sub">Neural-matched. Human-connected.</p>
+        <p class="landing-desc">Our AI finds study partners who align with your subjects, style, and schedule — then gets out of the way.</p>
+        <div class="landing-actions">
+          <button class="btn-primary" onclick="showPage('page-register')">
+            <span class="btn-icon">⬡</span> Initialize Profile
+          </button>
+          <button class="btn-ghost" onclick="showLoginPrompt()">Access Existing</button>
+        </div>
+        <div class="landing-stats">
+          <div class="stat"><span class="stat-n">AI</span><span class="stat-l">Powered</span></div>
+          <div class="stat-divider"></div>
+          <div class="stat"><span class="stat-n">Zero</span><span class="stat-l">PII Exposed</span></div>
+          <div class="stat-divider"></div>
+          <div class="stat"><span class="stat-n">Real</span><span class="stat-l">Connections</span></div>
+        </div>
       </div>
-      <div class="ai-badge">◆ AI-POWERED MATCHING</div>
-      <h1 class="landing-title">My Study<br/><span class="accent">Friends</span></h1>
-      <p class="landing-sub">Neural-matched. Human-connected.</p>
-      <p class="landing-desc">Our AI finds study partners who align with your subjects, style, and schedule — then gets out of the way.</p>
-      <div class="landing-actions">
-        <button class="btn-primary" onclick="showPage('page-register')">
-          <span class="btn-icon">⬡</span> Initialize Profile
-        </button>
-        <button class="btn-ghost" onclick="showLoginPrompt()">Access Existing</button>
+
+      <!-- RIGHT: 3×2 photo showcase grid -->
+      <div class="landing-showcase">
+        <div class="photo-showcase-grid">
+          <div class="photo-card"><img src="https://myresearchdata.blob.core.windows.net/studymate-static/Image001.jpg" alt="Student 1" /><div class="photo-scan"></div></div>
+          <div class="photo-card"><img src="https://myresearchdata.blob.core.windows.net/studymate-static/Image002.jpg" alt="Student 2" /><div class="photo-scan"></div></div>
+          <div class="photo-card"><img src="https://myresearchdata.blob.core.windows.net/studymate-static/Image003.jpg" alt="Student 3" /><div class="photo-scan"></div></div>
+          <div class="photo-card"><img src="https://myresearchdata.blob.core.windows.net/studymate-static/Image004.jpg" alt="Student 4" /><div class="photo-scan"></div></div>
+          <div class="photo-card"><img src="https://myresearchdata.blob.core.windows.net/studymate-static/Image005.jpg" alt="Student 5" /><div class="photo-scan"></div></div>
+          <div class="photo-card"><img src="https://myresearchdata.blob.core.windows.net/studymate-static/Image006.jpg" alt="Student 6" /><div class="photo-scan"></div></div>
+        </div>
       </div>
-      <div class="landing-stats">
-        <div class="stat"><span class="stat-n">AI</span><span class="stat-l">Powered</span></div>
-        <div class="stat-divider"></div>
-        <div class="stat"><span class="stat-n">Zero</span><span class="stat-l">PII Exposed</span></div>
-        <div class="stat-divider"></div>
-        <div class="stat"><span class="stat-n">Real</span><span class="stat-l">Connections</span></div>
-      </div>
+
     </div>
   </div>
 
