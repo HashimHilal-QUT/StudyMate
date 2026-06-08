@@ -530,3 +530,210 @@ function handleProfileModalClick(e) {
     hideModal("modal-profile");
   }
 }
+
+// ================================================
+// BORDER FRAMES — show on all pages except landing
+// ================================================
+function updateBorderFrames(pageId) {
+  const frames = document.getElementById("border-frames");
+  if (!frames) return;
+  if (pageId === "page-landing") {
+    frames.classList.remove("visible");
+  } else {
+    frames.classList.add("visible");
+  }
+}
+
+// Patch showPage to also toggle border frames
+const _baseShowPage = showPage;
+window.showPage = function(pageId) {
+  _baseShowPage(pageId);
+  updateBorderFrames(pageId);
+  if (pageId === "page-edit") loadEditProfile();
+};
+
+// ================================================
+// EDIT PROFILE — load current data into the form
+// ================================================
+const editSubjects = [];
+
+function loadEditProfile() {
+  if (!STATE.userId) { showPage("page-gallery"); return; }
+
+  // Fetch the user's own profile
+  fetch(`/.netlify/functions/get-profiles?userId=${encodeURIComponent(STATE.userId)}&includeSelf=true`)
+    .then(r => r.json())
+    .then(data => {
+      // get-profiles excludes self, so fetch all and find by checking stored data
+      // We'll use a dedicated approach: re-fetch with own ID
+    });
+
+  // Use a direct approach — fetch own profile via a targeted call
+  fetchOwnProfile().then(profile => {
+    if (!profile) return;
+
+    // Populate locked name
+    document.getElementById("edit-firstname-display").textContent = profile.firstName || "—";
+
+    // Avatar grid
+    initEditAvatarGrid(profile.avatar);
+
+    // University
+    document.getElementById("edit-university").value = profile.university || "";
+
+    // Subjects
+    editSubjects.length = 0;
+    (profile.subjects || []).forEach(s => editSubjects.push(s));
+    renderEditSubjectTags();
+
+    // Study style
+    const styleGroup = document.getElementById("edit-study-style-select");
+    styleGroup.querySelectorAll(".pill").forEach(p => {
+      p.classList.toggle("selected", p.dataset.value === profile.studyStyle);
+    });
+
+    // Availability
+    const availGroup = document.getElementById("edit-availability-select");
+    availGroup.querySelectorAll(".pill").forEach(p => {
+      p.classList.toggle("selected", p.dataset.value === profile.availability);
+    });
+
+    // Bio
+    const bio = document.getElementById("edit-bio");
+    bio.value = profile.bio || "";
+    document.getElementById("edit-bio-chars").textContent = `${bio.value.length}/200`;
+
+    // Contact
+    const c = profile.contact || {};
+    document.getElementById("edit-instagram").value = c.instagram || "";
+    document.getElementById("edit-linkedin").value  = c.linkedin  || "";
+    document.getElementById("edit-discord").value   = c.discord   || "";
+
+    // Wire up bio counter
+    bio.oninput = () => {
+      document.getElementById("edit-bio-chars").textContent = `${bio.value.length}/200`;
+    };
+
+    // Wire up edit subject enter key
+    const subjectInput = document.getElementById("edit-subject-input");
+    subjectInput.onkeydown = (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const val = subjectInput.value.trim();
+        if (val && editSubjects.length < 8) {
+          editSubjects.push(val);
+          subjectInput.value = "";
+          renderEditSubjectTags();
+        }
+      }
+    };
+
+    // Wire up pill selects for edit page
+    document.querySelectorAll("#edit-study-style-select .pill, #edit-availability-select .pill")
+      .forEach(pill => {
+        pill.onclick = () => {
+          pill.closest(".pill-select").querySelectorAll(".pill").forEach(p => p.classList.remove("selected"));
+          pill.classList.add("selected");
+        };
+      });
+  });
+}
+
+async function fetchOwnProfile() {
+  try {
+    const res  = await fetch(
+      `/.netlify/functions/get-profiles?userId=${encodeURIComponent(STATE.userId)}&includeSelf=true`
+    );
+    const data = await res.json();
+    return (data.profiles || []).find(p => p.id === STATE.userId) || null;
+  } catch {
+    return null;
+  }
+}
+
+function initEditAvatarGrid(selectedKey) {
+  const grid = document.getElementById("edit-avatar-grid");
+  if (!grid) return;
+  grid.innerHTML = "";
+  AVATARS.forEach(av => {
+    const btn = document.createElement("button");
+    btn.className = "avatar-option" + (av.key === selectedKey ? " selected" : "");
+    btn.setAttribute("data-key", av.key);
+    btn.title = av.label;
+    btn.textContent = av.emoji;
+    btn.onclick = () => {
+      grid.querySelectorAll(".avatar-option").forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+    };
+    grid.appendChild(btn);
+  });
+}
+
+function renderEditSubjectTags() {
+  const list = document.getElementById("edit-subject-tags");
+  list.innerHTML = editSubjects.map((s, i) =>
+    `<span class="tag">${escHtml(s)}<button onclick="removeEditSubject(${i})">×</button></span>`
+  ).join("");
+}
+function removeEditSubject(i) { editSubjects.splice(i, 1); renderEditSubjectTags(); }
+
+async function handleEditProfile() {
+  if (!STATE.userId) return;
+
+  const selectedAvatar = document.querySelector("#edit-avatar-grid .avatar-option.selected");
+  const university     = document.getElementById("edit-university").value.trim();
+  const studyStyle     = document.querySelector("#edit-study-style-select .pill.selected")?.dataset.value || "";
+  const availability   = document.querySelector("#edit-availability-select .pill.selected")?.dataset.value || "";
+  const bio            = document.getElementById("edit-bio").value.trim();
+  const instagram      = document.getElementById("edit-instagram").value.trim();
+  const linkedin       = document.getElementById("edit-linkedin").value.trim();
+  const discord        = document.getElementById("edit-discord").value.trim();
+
+  const errEl     = document.getElementById("edit-error");
+  const successEl = document.getElementById("edit-success");
+  errEl.classList.add("hidden");
+  successEl.classList.add("hidden");
+
+  if (!selectedAvatar) {
+    errEl.textContent = "Please choose an avatar.";
+    errEl.classList.remove("hidden");
+    return;
+  }
+
+  const btn = document.getElementById("edit-submit");
+  btn.disabled = true;
+  btn.innerHTML = "<span>Saving…</span>";
+
+  try {
+    const res = await fetch("/.netlify/functions/update-profile", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId: STATE.userId,
+        avatar:       selectedAvatar.dataset.key,
+        subjects:     editSubjects,
+        studyStyle,
+        availability,
+        university,
+        bio,
+        contact: { instagram, linkedin, discord },
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Update failed");
+
+    // Update stored avatar
+    STATE.myAvatar = selectedAvatar.dataset.key;
+    localStorage.setItem("sm_avatar", selectedAvatar.dataset.key);
+
+    successEl.classList.remove("hidden");
+    setTimeout(() => successEl.classList.add("hidden"), 3000);
+  } catch (err) {
+    errEl.textContent = err.message || "Something went wrong.";
+    errEl.classList.remove("hidden");
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = "<span>Save Changes →</span>";
+  }
+}

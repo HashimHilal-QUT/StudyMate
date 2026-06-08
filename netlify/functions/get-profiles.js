@@ -53,9 +53,10 @@ exports.handler = async (event, context) => {
       });
     }
 
-    // If userId provided, filter out self and already-swiped
+    // If userId provided, filter out self and already-swiped (unless includeSelf=true)
     let filteredProfiles = profiles;
-    if (userId) {
+    const { includeSelf } = event.queryStringParameters || {};
+    if (userId && includeSelf !== "true") {
       const swipedIds = new Set();
       const swipesIter = swipesClient.listEntities({
         queryOptions: { filter: `PartitionKey eq 'swipe' and RowKey ge '${userId}_' and RowKey lt '${userId}_~'` },
@@ -64,7 +65,6 @@ exports.handler = async (event, context) => {
         const targetId = s.rowKey.replace(`${userId}_`, "");
         swipedIds.add(targetId);
       }
-
       filteredProfiles = profiles.filter(
         (p) => p.id !== userId && !swipedIds.has(p.id)
       );

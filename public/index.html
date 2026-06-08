@@ -13,6 +13,16 @@
 
   <div class="scanline-overlay" aria-hidden="true"></div>
 
+  <!-- ====== PERSISTENT BORDER IMAGES (all pages except landing) ====== -->
+  <div class="border-frames" id="border-frames" aria-hidden="true">
+    <div class="bf bf-tl"><img src="https://myresearchdata.blob.core.windows.net/studymate-static/Image001.jpg" alt=""/></div>
+    <div class="bf bf-tr"><img src="https://myresearchdata.blob.core.windows.net/studymate-static/Image002.jpg" alt=""/></div>
+    <div class="bf bf-ml"><img src="https://myresearchdata.blob.core.windows.net/studymate-static/Image003.jpg" alt=""/></div>
+    <div class="bf bf-mr"><img src="https://myresearchdata.blob.core.windows.net/studymate-static/Image004.jpg" alt=""/></div>
+    <div class="bf bf-bl"><img src="https://myresearchdata.blob.core.windows.net/studymate-static/Image005.jpg" alt=""/></div>
+    <div class="bf bf-br"><img src="https://myresearchdata.blob.core.windows.net/studymate-static/Image006.jpg" alt=""/></div>
+  </div>
+
   <!-- ==================== LANDING ==================== -->
   <div id="page-landing" class="page active">
     <div class="landing-bg">
@@ -105,17 +115,14 @@
         <label>First name only <span class="required">*</span></label>
         <input type="text" id="reg-firstname" class="field" placeholder="e.g. Alex" maxlength="30" />
       </div>
-
       <div class="form-group">
         <label>Choose your avatar <span class="required">*</span></label>
         <div class="avatar-grid" id="avatar-grid"></div>
       </div>
-
       <div class="form-group">
         <label>University / Institution</label>
         <input type="text" id="reg-university" class="field" placeholder="e.g. QUT, UQ, Griffith…" maxlength="60" />
       </div>
-
       <div class="form-group">
         <label>Subjects you study</label>
         <div class="tag-input-wrap">
@@ -123,7 +130,6 @@
           <div class="tag-list" id="reg-subject-tags"></div>
         </div>
       </div>
-
       <div class="form-group">
         <label>Study style</label>
         <div class="pill-select" id="study-style-select">
@@ -131,10 +137,9 @@
           <button class="pill" data-value="Collaborative">Collaborative</button>
           <button class="pill" data-value="Discussion heavy">Discussion heavy</button>
           <button class="pill" data-value="Exam crammer">Exam crammer</button>
-          <button class="pill" data-value="Casual & relaxed">Casual & relaxed</button>
+          <button class="pill" data-value="Casual & relaxed">Casual &amp; relaxed</button>
         </div>
       </div>
-
       <div class="form-group">
         <label>Best availability</label>
         <div class="pill-select" id="availability-select">
@@ -145,12 +150,10 @@
           <button class="pill" data-value="Late nights">Late nights</button>
         </div>
       </div>
-
       <div class="form-group">
         <label>Short bio <span class="char-hint" id="bio-chars">0/200</span></label>
         <textarea id="reg-bio" class="field" rows="3" maxlength="200" placeholder="What kind of study buddy are you?"></textarea>
       </div>
-
       <div class="form-group">
         <label>Contact handles <span class="hint">(optional — only shown in your profile to others)</span></label>
         <div class="contact-fields">
@@ -168,9 +171,7 @@
           </div>
         </div>
       </div>
-
       <div id="reg-error" class="error-msg hidden"></div>
-
       <button class="btn-primary w-full" id="reg-submit" onclick="handleRegister()">
         <span>Initialise &amp; Enter the Network →</span>
       </button>
@@ -185,6 +186,12 @@
         <input type="text" id="search-input" class="search-field" placeholder="Search by name, subject, uni…" oninput="filterGallery()" />
       </div>
       <div class="header-actions">
+        <button class="nav-btn" onclick="showPage('page-edit')" title="Edit Profile">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+        </button>
         <button class="nav-btn" onclick="handleLogout()" title="Logout">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -194,25 +201,101 @@
         </button>
       </div>
     </header>
-
     <div class="gallery-content">
       <div class="gallery-meta">
         <h2 class="section-title">Study Network</h2>
         <span class="gallery-count" id="gallery-count"></span>
       </div>
-
       <div id="gallery-loading" class="swipe-loading">
         <div class="spinner"></div>
         <p>Scanning study network…</p>
       </div>
-
       <div id="gallery-empty" class="empty-state hidden">
         <div class="empty-icon">◎</div>
         <h3>No students found</h3>
         <p>Be the first to join the network, or adjust your search.</p>
       </div>
-
       <div id="gallery-grid" class="gallery-grid"></div>
+    </div>
+  </div>
+
+  <!-- ==================== EDIT PROFILE PAGE ==================== -->
+  <div id="page-edit" class="page">
+    <div class="reg-header">
+      <button class="back-btn" onclick="showPage('page-gallery')">← Back to Network</button>
+      <div class="reg-logo">Edit Profile</div>
+    </div>
+    <div class="page-inner narrow">
+      <h2 class="page-title">Update your profile</h2>
+      <p class="page-sub">Your first name cannot be changed. All other fields are editable.</p>
+
+      <!-- Name locked display -->
+      <div class="form-group">
+        <label>First name <span class="locked-badge">LOCKED</span></label>
+        <div class="field field-locked" id="edit-firstname-display">—</div>
+      </div>
+
+      <div class="form-group">
+        <label>Choose your avatar <span class="required">*</span></label>
+        <div class="avatar-grid" id="edit-avatar-grid"></div>
+      </div>
+      <div class="form-group">
+        <label>University / Institution</label>
+        <input type="text" id="edit-university" class="field" placeholder="e.g. QUT, UQ, Griffith…" maxlength="60" />
+      </div>
+      <div class="form-group">
+        <label>Subjects you study</label>
+        <div class="tag-input-wrap">
+          <input type="text" id="edit-subject-input" class="field" placeholder="Type a subject and press Enter" />
+          <div class="tag-list" id="edit-subject-tags"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Study style</label>
+        <div class="pill-select" id="edit-study-style-select">
+          <button class="pill" data-value="Silent focus">Silent focus</button>
+          <button class="pill" data-value="Collaborative">Collaborative</button>
+          <button class="pill" data-value="Discussion heavy">Discussion heavy</button>
+          <button class="pill" data-value="Exam crammer">Exam crammer</button>
+          <button class="pill" data-value="Casual & relaxed">Casual &amp; relaxed</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Best availability</label>
+        <div class="pill-select" id="edit-availability-select">
+          <button class="pill" data-value="Weekday mornings">Weekday mornings</button>
+          <button class="pill" data-value="Weekday afternoons">Weekday afternoons</button>
+          <button class="pill" data-value="Weekday evenings">Weekday evenings</button>
+          <button class="pill" data-value="Weekends">Weekends</button>
+          <button class="pill" data-value="Late nights">Late nights</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Short bio <span class="char-hint" id="edit-bio-chars">0/200</span></label>
+        <textarea id="edit-bio" class="field" rows="3" maxlength="200" placeholder="What kind of study buddy are you?"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Contact handles <span class="hint">(optional — shown in your profile)</span></label>
+        <div class="contact-fields">
+          <div class="contact-row">
+            <span class="contact-label">IG</span>
+            <input type="text" id="edit-instagram" class="field" placeholder="Instagram handle" maxlength="30" />
+          </div>
+          <div class="contact-row">
+            <span class="contact-label">LI</span>
+            <input type="text" id="edit-linkedin" class="field" placeholder="LinkedIn handle" maxlength="50" />
+          </div>
+          <div class="contact-row">
+            <span class="contact-label">DC</span>
+            <input type="text" id="edit-discord" class="field" placeholder="Discord username" maxlength="50" />
+          </div>
+        </div>
+      </div>
+      <div id="edit-error" class="error-msg hidden"></div>
+      <div id="edit-success" class="success-msg hidden">◆ Profile updated successfully</div>
+      <button class="btn-primary w-full" id="edit-submit" onclick="handleEditProfile()">
+        <span>Save Changes →</span>
+      </button>
     </div>
   </div>
 
@@ -294,8 +377,7 @@
         });
         requestAnimationFrame(draw);
       }
-      resize();
-      draw();
+      resize(); draw();
       window.addEventListener('resize', resize);
     }
   </script>

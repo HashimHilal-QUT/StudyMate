@@ -661,3 +661,133 @@ html, body {
   z-index: 10;
 }
 .profile-back-btn:hover { border-color: var(--border-hi); color: var(--cyan); }
+
+/* ================================================
+   NEON BORDER FRAME IMAGES
+   Fixed 6 images around the viewport edges on all
+   inner pages (gallery, register, edit).
+   Hidden on landing (landing has its own bg-photos).
+   ================================================ */
+.border-frames {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;          /* behind header/content but above void bg */
+  display: none;       /* shown via JS when not on landing */
+}
+.border-frames.visible { display: block; }
+
+.bf {
+  position: absolute;
+  overflow: hidden;
+  border-radius: 10px;
+  border: 2px solid var(--cyan);
+  box-shadow:
+    0 0 0 1px rgba(0,255,200,0.15),
+    0 0 18px rgba(0,255,200,0.35),
+    inset 0 0 12px rgba(0,255,200,0.08);
+  animation: neonPulse 3s ease-in-out infinite;
+}
+.bf img {
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
+  filter: brightness(0.55) saturate(0.7);
+}
+/* Each frame gets a slightly offset pulse phase */
+.bf:nth-child(2) { animation-delay: 0.5s; }
+.bf:nth-child(3) { animation-delay: 1.0s; }
+.bf:nth-child(4) { animation-delay: 1.5s; }
+.bf:nth-child(5) { animation-delay: 2.0s; }
+.bf:nth-child(6) { animation-delay: 2.5s; }
+
+@keyframes neonPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 1px rgba(0,255,200,0.12), 0 0 14px rgba(0,255,200,0.3), inset 0 0 8px rgba(0,255,200,0.06);
+    border-color: var(--cyan);
+  }
+  50% {
+    box-shadow: 0 0 0 1px rgba(0,255,200,0.3), 0 0 28px rgba(0,255,200,0.55), 0 0 48px rgba(0,255,200,0.15), inset 0 0 16px rgba(0,255,200,0.12);
+    border-color: #33ffd4;
+  }
+}
+
+/* Positions — left column top/mid/bottom, right column top/mid/bottom */
+.bf-tl { width: 110px; height: 145px; top: 64px;  left: 6px; }
+.bf-ml { width: 110px; height: 145px; top: 50%;   left: 6px; transform: translateY(-50%); }
+.bf-bl { width: 110px; height: 145px; bottom: 6px; left: 6px; }
+.bf-tr { width: 110px; height: 145px; top: 64px;  right: 6px; }
+.bf-mr { width: 110px; height: 145px; top: 50%;   right: 6px; transform: translateY(-50%); }
+.bf-br { width: 110px; height: 145px; bottom: 6px; right: 6px; }
+
+/* On narrow screens hide middle pair to avoid overlap */
+@media (max-width: 540px) {
+  .bf { width: 70px; height: 95px; }
+  .bf-tl { top: 58px; left: 2px; }
+  .bf-ml { left: 2px; }
+  .bf-bl { left: 2px; }
+  .bf-tr { top: 58px; right: 2px; }
+  .bf-mr { right: 2px; }
+  .bf-br { right: 2px; }
+}
+@media (max-width: 380px) {
+  .bf-ml, .bf-mr { display: none; }
+}
+
+/* ================================================
+   NEON FORM FIELD TEXT — override the dim grey
+   ================================================ */
+.field,
+.search-field {
+  color: var(--cyan) !important;
+  caret-color: var(--cyan);
+}
+.field::placeholder,
+.search-field::placeholder {
+  color: rgba(0,255,200,0.32) !important;
+}
+/* Keep textarea consistent */
+textarea.field { color: var(--cyan) !important; }
+
+/* ================================================
+   EDIT PROFILE PAGE
+   ================================================ */
+.field-locked {
+  cursor: not-allowed;
+  opacity: 0.5;
+  background: var(--raised) !important;
+  color: var(--text-dim) !important;
+  border-color: var(--border) !important;
+  padding: 11px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  border: 1px solid var(--border);
+  user-select: none;
+}
+
+.locked-badge {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+  background: var(--raised);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 2px 6px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.success-msg {
+  background: rgba(0,255,200,0.07);
+  border: 1px solid rgba(0,255,200,0.25);
+  border-radius: 6px;
+  padding: 10px 14px;
+  color: var(--cyan);
+  font-size: 12px;
+  margin-bottom: 14px;
+  font-family: var(--font-display);
+  letter-spacing: 0.05em;
+}
+.success-msg.hidden { display: none; }
