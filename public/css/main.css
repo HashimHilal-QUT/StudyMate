@@ -58,7 +58,13 @@ html, body {
 .page.active { opacity: 1; pointer-events: all; transform: translateY(0); }
 
 /* ======================== LANDING ======================== */
-#page-landing { overflow-x: hidden; overflow-y: auto; }
+#page-landing {
+  /* Override the fixed-position page system so content isn't clipped on mobile */
+  position: relative;
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: visible;
+}
 
 .landing-bg { position: absolute; inset: 0; background: var(--void); }
 .grid-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -793,15 +799,23 @@ textarea.field { color: var(--cyan) !important; }
   z-index: 2;
   display: flex;
   flex-direction: column;
-  align-items: center;        /* centre children on mobile */
+  align-items: center;
   width: 100%;
   max-width: 1300px;
   margin: 0 auto;
-  padding: 3rem 1.5rem;
+  padding: 3rem 1.5rem 4rem;
   box-sizing: border-box;
   justify-content: center;
   gap: 2.5rem;
-  min-height: 100vh;
+}
+
+/* Desktop: restore fixed positioning so the canvas bg fills the viewport */
+@media (min-width: 992px) {
+  #page-landing {
+    position: fixed;
+    inset: 0;
+    overflow-y: auto;
+  }
 }
 
 /* On desktop: side-by-side, centred together */
@@ -812,6 +826,7 @@ textarea.field { color: var(--cyan) !important; }
     justify-content: center;
     padding: 3rem 3rem;
     gap: 4rem;
+    min-height: 100vh;   /* fill screen on desktop */
   }
   .landing-content  { width: 42%; flex-shrink: 0; }
   .landing-showcase { width: 52%; flex-shrink: 0; }
