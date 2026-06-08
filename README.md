@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🎓 My Study Friends
+# 🎓 My Study Friends a.k.a Study Mate
 
 ### *Stop studying alone. Start studying smarter.*
 
@@ -11,7 +11,8 @@
 ---
 
 <!-- 📸 SCREENSHOT -->
-<!-- Insert screenshot here -->
+<img width="1644" height="681" alt="image" src="https://github.com/user-attachments/assets/bd8f31a1-d4f2-4bdd-a7e4-b0cf3b2c93df" />
+
 
 ---
 
