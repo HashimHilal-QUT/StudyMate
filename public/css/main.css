@@ -533,3 +533,131 @@ html, body {
   .pc-1 { width: 190px; height: 250px; left: 5%; }
   .pc-3 { width: 170px; height: 225px; right: 4%; }
 }
+
+/* ======================== SEARCH READABLE ======================== */
+.search-field {
+  color: #00ffc8 !important;
+  caret-color: #00ffc8;
+}
+.search-field::placeholder { color: rgba(0,255,200,0.35) !important; }
+
+/* ======================== QR SAVE MODAL ======================== */
+.qr-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border-radius: 10px;
+  padding: 14px;
+  margin: 0 auto 16px;
+  width: fit-content;
+  box-shadow: 0 0 0 1px var(--border-hi), var(--glow-sm);
+}
+.qr-wrap canvas { display: block !important; }
+
+.save-id-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.btn-secondary.half {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+/* ======================== LOGIN TABS ======================== */
+.login-tabs {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+.login-tab {
+  flex: 1;
+  padding: 9px 0;
+  background: transparent;
+  border: none;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--text-soft);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.login-tab:not(:last-child) { border-right: 1px solid var(--border); }
+.login-tab:hover { color: var(--text); background: var(--raised); }
+.login-tab.active { background: rgba(0,255,200,0.1); color: var(--cyan); }
+
+/* ======================== QR READER ======================== */
+.qr-reader-wrap {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  margin: 0 auto 12px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #000;
+  border: 1px solid var(--border-hi);
+}
+#qr-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.qr-scanner-line {
+  position: absolute;
+  left: 10%; right: 10%;
+  height: 2px;
+  background: linear-gradient(to right, transparent, var(--cyan), transparent);
+  box-shadow: 0 0 8px var(--cyan);
+  animation: scanLine 2s ease-in-out infinite;
+  top: 50%;
+}
+@keyframes scanLine {
+  0%, 100% { transform: translateY(-80px); opacity: 0.6; }
+  50%       { transform: translateY(80px);  opacity: 1; }
+}
+/* Corner brackets */
+.qr-corner {
+  position: absolute;
+  width: 20px; height: 20px;
+  border-color: var(--cyan);
+  border-style: solid;
+  opacity: 0.9;
+}
+.qr-corner.tl { top: 8px;  left: 8px;  border-width: 2px 0 0 2px; }
+.qr-corner.tr { top: 8px;  right: 8px; border-width: 2px 2px 0 0; }
+.qr-corner.bl { bottom: 8px; left: 8px;  border-width: 0 0 2px 2px; }
+.qr-corner.br { bottom: 8px; right: 8px; border-width: 0 2px 2px 0; }
+
+.qr-status {
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--text-soft);
+  margin-bottom: 4px;
+}
+
+/* ======================== PROFILE MODAL BACK ======================== */
+.profile-back-btn {
+  position: absolute;
+  top: 14px; left: 14px;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 5px 12px;
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-soft);
+  cursor: pointer;
+  transition: var(--transition);
+  z-index: 10;
+}
+.profile-back-btn:hover { border-color: var(--border-hi); color: var(--cyan); }

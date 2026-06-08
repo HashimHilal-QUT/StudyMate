@@ -67,9 +67,27 @@
       <button class="modal-close" onclick="hideModal('modal-login')">✕</button>
       <div class="modal-icon">◈</div>
       <h2>Access Node</h2>
-      <p class="modal-sub">Enter your Student ID to reconnect</p>
-      <input type="text" id="login-id" class="field" placeholder="Your Student ID…" />
-      <button class="btn-primary w-full" onclick="handleLogin()">Connect →</button>
+      <div class="login-tabs">
+        <button class="login-tab active" id="tab-id" onclick="switchLoginTab('id')">Key</button>
+        <button class="login-tab" id="tab-qr" onclick="switchLoginTab('qr')">QR Scan</button>
+      </div>
+      <div id="login-panel-id">
+        <p class="modal-sub">Paste your Student ID to reconnect</p>
+        <input type="text" id="login-id" class="field" placeholder="Your Student ID…" />
+        <button class="btn-primary w-full" onclick="handleLogin()">Connect →</button>
+      </div>
+      <div id="login-panel-qr" class="hidden">
+        <p class="modal-sub">Point your camera at your saved QR code</p>
+        <div class="qr-reader-wrap">
+          <video id="qr-video" autoplay playsinline muted></video>
+          <div class="qr-scanner-line"></div>
+          <div class="qr-corner tl"></div>
+          <div class="qr-corner tr"></div>
+          <div class="qr-corner bl"></div>
+          <div class="qr-corner br"></div>
+        </div>
+        <p class="qr-status" id="qr-status">Initialising camera…</p>
+      </div>
     </div>
   </div>
 
@@ -199,9 +217,10 @@
   </div>
 
   <!-- ==================== PROFILE DETAIL MODAL ==================== -->
-  <div id="modal-profile" class="modal hidden">
+  <div id="modal-profile" class="modal hidden" onclick="handleProfileModalClick(event)">
     <div class="modal-box profile-box">
       <button class="modal-close" onclick="hideModal('modal-profile')">✕</button>
+      <button class="profile-back-btn" onclick="hideModal('modal-profile')">← Back to Network</button>
       <div class="profile-avatar-wrap">
         <div class="profile-avatar" id="modal-avatar"></div>
         <div class="profile-pulse"></div>
@@ -222,9 +241,15 @@
     <div class="modal-box">
       <div class="modal-icon">◈</div>
       <h2>Save your Access Key</h2>
-      <p class="modal-sub">This is your unique login token. Store it securely — it's the only way to access your profile.</p>
+      <p class="modal-sub">Scan or download this QR code — it's the only way back in. Keep it safe.</p>
+      <div class="qr-wrap">
+        <canvas id="qr-canvas"></canvas>
+      </div>
       <div class="id-display" id="display-user-id"></div>
-      <button class="btn-secondary" onclick="copyUserId()">⊕ Copy Key</button>
+      <div class="save-id-actions">
+        <button class="btn-secondary half" onclick="copyUserId()">⊕ Copy Key</button>
+        <button class="btn-secondary half" onclick="downloadQR()">↓ Save QR</button>
+      </div>
       <button class="btn-primary w-full" onclick="hideModal('modal-save-id'); showPage('page-gallery')">Confirmed — Enter the Network →</button>
     </div>
   </div>
@@ -240,6 +265,7 @@
     </div>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="/js/avatars.js"></script>
   <script src="/js/app.js"></script>
   <script>
