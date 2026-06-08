@@ -170,7 +170,7 @@ async function handleRegister() {
     localStorage.setItem("sm_userId",  data.userId);
     localStorage.setItem("sm_avatar", selectedAvatar.dataset.key);
 
-    document.getElementById("display-user-id").textContent = data.userId;
+    onSaveIdModalOpen(data.userId);
     showModal("modal-save-id");
   } catch (err) {
     showError(err.message || "Something went wrong. Please try again.");
@@ -185,15 +185,7 @@ function showError(msg) {
   el.classList.remove("hidden");
 }
 
-function copyUserId() {
-  const id = document.getElementById("display-user-id").textContent;
-  navigator.clipboard.writeText(id).then(() => {
-    const btn = event.target;
-    const orig = btn.textContent;
-    btn.textContent = "✓ Copied!";
-    setTimeout(() => btn.textContent = orig, 2000);
-  });
-}
+
 
 // ========================
 // GALLERY
@@ -353,66 +345,86 @@ function escHtml(str) {
     .replace(/"/g, "&quot;");
 }
 
-// ========================
-// QR CODE — GENERATE & DOWNLOAD
-// ========================
-let _qrInstance = null;
+// ================================================
+// QR CODE — using qrcode.min.js (same lib as the
+// Node-JS-Simple-QR-Code-Generator reference repo)
+// API: QRCode.toCanvas(canvasEl, text [, opts])
+//      QRCode.toDataURL(text [, opts])  → Promise<dataURL>
+// ================================================
 
 function generateQR(userId) {
   const canvas = document.getElementById("qr-canvas");
   if (!canvas) return;
 
-  // qrcodejs needs a container div, so we use the canvas parent
-  const wrap = canvas.parentElement;
-  wrap.innerHTML = "";                     // clear previous
+  const opts = {
+    width:           180,
+    margin:          2,
+    color: {
+      dark:  "#050810",   // deep navy dots — matches site bg
+      light: "#ffffff",   // white background so it scans
+    },
+    errorCorrectionLevel: "H",
+  };
 
-  try {
-    _qrInstance = new QRCode(wrap, {
-      text:          userId,
-      width:         180,
-      height:        180,
-      colorDark:     "#050810",
-      colorLight:    "#ffffff",
-      correctLevel:  QRCode.CorrectLevel.H,
-    });
-  } catch (e) {
-    wrap.innerHTML = `<p style="color:var(--text-soft);font-size:12px;padding:20px">QR unavailable</p>`;
-  }
+  QRCode.toCanvas(canvas, userId, opts, function (err) {
+    if (err) {
+      console.error("QR generation error:", err);
+      // Fallback: write text on canvas
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, 180, 180);
+      ctx.fillStyle = "#050810";
+      ctx.font = "10px monospace";
+      ctx.fillText("QR unavailable", 10, 90);
+    }
+  });
 }
 
+// Called when the save-ID modal opens
+function onSaveIdModalOpen(userId) {
+  document.getElementById("display-user-id").textContent = userId;
+  // Small delay so canvas is visible in the DOM
+  setTimeout(() => generateQR(userId), 60);
+}
+
+// Download the QR as PNG
 function downloadQR() {
-  const wrap = document.getElementById("qr-canvas")?.parentElement || document.querySelector(".qr-wrap");
-  const img  = wrap?.querySelector("img") || wrap?.querySelector("canvas");
-  if (!img) return;
-
-  const src = img.tagName === "CANVAS"
-    ? img.toDataURL("image/png")
-    : img.src;
-
-  const a  = document.createElement("a");
-  a.href   = src;
-  a.download = "mystudyfriends-access-key.png";
-  a.click();
+  const canvas = document.getElementById("qr-canvas");
+  if (!canvas) return;
+  const link = document.createElement("a");
+  link.download = "mystudyfriends-access-key.png";
+  link.href = canvas.toDataURL("image/png");
+  link.click();
 }
 
-// Patch handleRegister to call generateQR after getting userId
-const _origRegister = handleRegister;
-// Override the showModal call — hook into after modal-save-id appears
-const _origShowModal = showModal;
-window.showModal = function(id) {
-  _origShowModal(id);
-  if (id === "modal-save-id") {
-    const userId = document.getElementById("display-user-id").textContent;
-    // slight delay so DOM is visible
-    setTimeout(() => generateQR(userId), 80);
-  }
-};
+function copyUserId() {
+  const id = document.getElementById("display-user-id").textContent;
+  navigator.clipboard.writeText(id).then(() => {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = "✓ Copied!";
+    setTimeout(() => btn.textContent = orig, 2000);
+  });
+}
 
-// ========================
-// QR CODE — CAMERA SCAN LOGIN
-// ========================
+// ================================================
+// LOGIN TAB SWITCHING + QR SCAN
+// ================================================
 let _scanStream   = null;
 let _scanInterval = null;
+
+function switchLoginTab(tab) {
+  document.getElementById("login-panel-id").classList.toggle("hidden", tab !== "id");
+  document.getElementById("login-panel-qr").classList.toggle("hidden", tab !== "qr");
+  document.getElementById("tab-id").classList.toggle("active", tab === "id");
+  document.getElementById("tab-qr").classList.toggle("active", tab === "qr");
+
+  if (tab === "qr") {
+    startQRScan();
+  } else {
+    stopQRScan();
+  }
+}
 
 async function startQRScan() {
   const statusEl = document.getElementById("qr-status");
@@ -423,41 +435,40 @@ async function startQRScan() {
 
   try {
     _scanStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "environment" }
+      video: { facingMode: "environment" },
     });
     video.srcObject = _scanStream;
     statusEl.textContent = "Align your QR code in the frame";
 
-    // Use BarcodeDetector if available (Chrome/Edge)
     if ("BarcodeDetector" in window) {
+      // Native Chrome/Edge API — fastest
       const detector = new BarcodeDetector({ formats: ["qr_code"] });
       _scanInterval = setInterval(async () => {
         try {
           const codes = await detector.detect(video);
           if (codes.length > 0) {
-            const value = codes[0].rawValue;
             stopQRScan();
-            autoLoginFromQR(value);
+            autoLoginFromQR(codes[0].rawValue);
           }
         } catch (_) {}
       }, 400);
     } else {
-      // Fallback: canvas decode via jsQR (loaded lazily)
-      await loadJsQR();
-      _scanInterval = setInterval(() => {
-        if (!window.jsQR) return;
-        const c   = document.createElement("canvas");
-        c.width   = video.videoWidth  || 320;
-        c.height  = video.videoHeight || 320;
-        const ctx = c.getContext("2d");
-        ctx.drawImage(video, 0, 0, c.width, c.height);
-        const imageData = ctx.getImageData(0, 0, c.width, c.height);
-        const code = window.jsQR(imageData.data, imageData.width, imageData.height);
-        if (code?.data) {
-          stopQRScan();
-          autoLoginFromQR(code.data);
-        }
-      }, 400);
+      // Fallback: use jsQR loaded on demand
+      loadJsQR().then(() => {
+        _scanInterval = setInterval(() => {
+          if (!window.jsQR || video.readyState < 2) return;
+          const c   = document.createElement("canvas");
+          c.width   = video.videoWidth  || 320;
+          c.height  = video.videoHeight || 320;
+          c.getContext("2d").drawImage(video, 0, 0, c.width, c.height);
+          const img  = c.getContext("2d").getImageData(0, 0, c.width, c.height);
+          const code = window.jsQR(img.data, img.width, img.height);
+          if (code?.data) {
+            stopQRScan();
+            autoLoginFromQR(code.data);
+          }
+        }, 400);
+      });
     }
   } catch (err) {
     statusEl.textContent = "Camera access denied — paste your key instead";
@@ -488,7 +499,6 @@ function stopQRScan() {
 async function autoLoginFromQR(value) {
   const statusEl = document.getElementById("qr-status");
   if (statusEl) statusEl.textContent = "QR detected — verifying…";
-
   try {
     const res = await fetch(`/.netlify/functions/get-profiles?userId=${encodeURIComponent(value)}`);
     if (res.ok) {
@@ -498,7 +508,6 @@ async function autoLoginFromQR(value) {
       showPage("page-gallery");
     } else {
       if (statusEl) statusEl.textContent = "QR not recognised — try the Key tab";
-      // restart scan
       setTimeout(startQRScan, 1500);
     }
   } catch (e) {
@@ -506,34 +515,17 @@ async function autoLoginFromQR(value) {
   }
 }
 
-// ========================
-// LOGIN TAB SWITCHING
-// ========================
-function switchLoginTab(tab) {
-  document.getElementById("login-panel-id").classList.toggle("hidden", tab !== "id");
-  document.getElementById("login-panel-qr").classList.toggle("hidden", tab !== "qr");
-  document.getElementById("tab-id").classList.toggle("active", tab === "id");
-  document.getElementById("tab-qr").classList.toggle("active", tab === "qr");
-
-  if (tab === "qr") {
-    startQRScan();
-  } else {
-    stopQRScan();
-  }
-}
-
-// Stop camera when login modal is closed
-const _origHideModal = hideModal;
+// Stop camera when login modal closes
+const _basehideModal = hideModal;
 window.hideModal = function(id) {
-  _origHideModal(id);
+  _basehideModal(id);
   if (id === "modal-login") stopQRScan();
 };
 
-// ========================
-// PROFILE MODAL — CLICK OVERLAY TO CLOSE
-// ========================
+// ================================================
+// PROFILE MODAL — CLICK BACKDROP TO CLOSE
+// ================================================
 function handleProfileModalClick(e) {
-  // close only if clicking the dark backdrop, not the box inside
   if (e.target === document.getElementById("modal-profile")) {
     hideModal("modal-profile");
   }
