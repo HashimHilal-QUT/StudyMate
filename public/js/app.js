@@ -454,7 +454,7 @@ function showMatchModal(profile, contact) {
   const myAvatar = STATE.myAvatar || "avatar_owl";
 
   document.getElementById("match-modal-avatars").innerHTML =
-    `<span>${getAvatarEmoji(myAvatar)}</span><span>💫</span><span>${getAvatarEmoji(profile.avatar)}</span>`;
+    `<span>${getAvatarEmoji(myAvatar)}</span><span class="connector">◆</span><span>${getAvatarEmoji(profile.avatar)}</span>`;
 
   document.getElementById("match-modal-name").textContent =
     `You and ${profile.firstName} are study buddies!`;
@@ -463,12 +463,12 @@ function showMatchModal(profile, contact) {
   const contactEl = document.getElementById("match-modal-contact");
   if (contact && Object.values(contact).some(v => v)) {
     let html = "";
-    if (contact.instagram) html += `<div class="match-contact-item"><span>📸</span> <span>@${escHtml(contact.instagram)}</span></div>`;
-    if (contact.linkedin) html += `<div class="match-contact-item"><span>💼</span> <span>${escHtml(contact.linkedin)}</span></div>`;
-    if (contact.discord) html += `<div class="match-contact-item"><span>🎮</span> <span>${escHtml(contact.discord)}</span></div>`;
-    contactEl.innerHTML = html || "<p style='color:#94a3b8;font-size:13px'>No contact info shared yet</p>";
+    if (contact.instagram) html += `<div class="match-contact-item"><span class="match-contact-label">IG</span><span>@${escHtml(contact.instagram)}</span></div>`;
+    if (contact.linkedin) html += `<div class="match-contact-item"><span class="match-contact-label">LI</span><span>${escHtml(contact.linkedin)}</span></div>`;
+    if (contact.discord) html += `<div class="match-contact-item"><span class="match-contact-label">DC</span><span>${escHtml(contact.discord)}</span></div>`;
+    contactEl.innerHTML = html || "<p style='color:var(--text-dim);font-size:12px;font-family:var(--font-display);letter-spacing:.05em'>NO CONTACT INFO SHARED</p>";
   } else {
-    contactEl.innerHTML = "<p style='color:#94a3b8;font-size:13px'>No contact info shared yet</p>";
+    contactEl.innerHTML = "<p style='color:var(--text-dim);font-size:12px;font-family:var(--font-display);letter-spacing:.05em'>NO CONTACT INFO SHARED</p>";
   }
 
   showModal("modal-match");
@@ -533,16 +533,16 @@ function buildMatchCard(match) {
 
   let contactHtml = "";
   if (p.contact) {
-    if (p.contact.instagram) contactHtml += `<span class="contact-chip">📸 @${escHtml(p.contact.instagram)}</span>`;
-    if (p.contact.linkedin) contactHtml += `<span class="contact-chip">💼 ${escHtml(p.contact.linkedin)}</span>`;
-    if (p.contact.discord) contactHtml += `<span class="contact-chip">🎮 ${escHtml(p.contact.discord)}</span>`;
+    if (p.contact.instagram) contactHtml += `<span class="contact-chip">IG @${escHtml(p.contact.instagram)}</span>`;
+    if (p.contact.linkedin) contactHtml += `<span class="contact-chip">LI ${escHtml(p.contact.linkedin)}</span>`;
+    if (p.contact.discord) contactHtml += `<span class="contact-chip">DC ${escHtml(p.contact.discord)}</span>`;
   }
 
   card.innerHTML = `
     <div class="match-card-avatar">${getAvatarEmoji(p.avatar)}</div>
     <div class="match-card-name">${escHtml(p.firstName)}</div>
     <div class="match-card-uni">${escHtml(p.university || "")}</div>
-    <div class="match-contact-icons">${contactHtml || '<span style="color:#94a3b8;font-size:11px">No contact shared</span>'}</div>
+    <div class="match-contact-icons">${contactHtml || '<span style="color:var(--text-dim);font-size:10px;font-family:var(--font-display);letter-spacing:.05em">NO CONTACT</span>'}</div>
   `;
 
   return card;

@@ -3,59 +3,93 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>StudyMate — Find Your Study Buddy</title>
+  <title>My Study Friends — AI-Powered Study Matching</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Orbitron:wght@400;600;700;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/main.css" />
 </head>
 <body>
 
+  <!-- SCANLINE OVERLAY -->
+  <div class="scanline-overlay" aria-hidden="true"></div>
+
   <!-- LANDING PAGE -->
   <div id="page-landing" class="page active">
     <div class="landing-bg">
-      <div class="bg-strip strip-1"></div>
-      <div class="bg-strip strip-2"></div>
-      <div class="bg-strip strip-3"></div>
+      <canvas id="grid-canvas" class="grid-canvas"></canvas>
+      <div class="bg-orb orb-1"></div>
+      <div class="bg-orb orb-2"></div>
+      <div class="bg-orb orb-3"></div>
       <div class="bg-photos">
-        <div class="photo-card pc-1"><img src="https://myresearchdata.blob.core.windows.net/studymate-static/Image001.jpg" alt="" /></div>
-        <div class="photo-card pc-2"><img src="https://myresearchdata.blob.core.windows.net/studymate-static/Image002.jpg" alt="" /></div>
-        <div class="photo-card pc-3"><img src="https://myresearchdata.blob.core.windows.net/studymate-static/Image003.jpg" alt="" /></div>
-        <div class="photo-card pc-4"><img src="https://myresearchdata.blob.core.windows.net/studymate-static/Image004.jpg" alt="" /></div>
-        <div class="photo-card pc-5"><img src="https://myresearchdata.blob.core.windows.net/studymate-static/Image005.jpg" alt="" /></div>
-        <div class="photo-card pc-6"><img src="https://myresearchdata.blob.core.windows.net/studymate-static/Image006.jpg" alt="" /></div>
+        <div class="photo-card pc-1"><img src="https://myresearchdata.blob.core.windows.net/studymate-static/Image001.jpg" alt="" /><div class="photo-scan"></div></div>
+        <div class="photo-card pc-2"><img src="https://myresearchdata.blob.core.windows.net/studymate-static/Image002.jpg" alt="" /><div class="photo-scan"></div></div>
+        <div class="photo-card pc-3"><img src="https://myresearchdata.blob.core.windows.net/studymate-static/Image003.jpg" alt="" /><div class="photo-scan"></div></div>
+        <div class="photo-card pc-4"><img src="https://myresearchdata.blob.core.windows.net/studymate-static/Image004.jpg" alt="" /><div class="photo-scan"></div></div>
+        <div class="photo-card pc-5"><img src="https://myresearchdata.blob.core.windows.net/studymate-static/Image005.jpg" alt="" /><div class="photo-scan"></div></div>
+        <div class="photo-card pc-6"><img src="https://myresearchdata.blob.core.windows.net/studymate-static/Image006.jpg" alt="" /><div class="photo-scan"></div></div>
       </div>
       <div class="landing-overlay"></div>
     </div>
     <div class="landing-content">
-      <div class="logo-mark">SM</div>
-      <h1 class="landing-title">Study<span class="accent">Mate</span></h1>
-      <p class="landing-sub">Swipe. Match. Study together.</p>
-      <p class="landing-desc">Find the perfect study partner who matches your vibe, subjects, and schedule.</p>
+      <div class="logo-mark">
+        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 2"/>
+          <circle cx="20" cy="20" r="6" fill="currentColor" opacity="0.9"/>
+          <line x1="20" y1="2" x2="20" y2="10" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="20" y1="30" x2="20" y2="38" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="2" y1="20" x2="10" y2="20" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="30" y1="20" x2="38" y2="20" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="ai-badge">◆ AI-POWERED MATCHING</div>
+      <h1 class="landing-title">My Study<br/><span class="accent">Friends</span></h1>
+      <p class="landing-sub">Neural-matched. Human-connected.</p>
+      <p class="landing-desc">Our AI finds study partners who align with your subjects, style, and schedule — then gets out of the way.</p>
       <div class="landing-actions">
-        <button class="btn-primary" onclick="showPage('page-register')">Get Started</button>
-        <button class="btn-ghost" onclick="showLoginPrompt()">I have an account</button>
+        <button class="btn-primary" onclick="showPage('page-register')">
+          <span class="btn-icon">⬡</span> Initialize Profile
+        </button>
+        <button class="btn-ghost" onclick="showLoginPrompt()">Access Existing</button>
+      </div>
+      <div class="landing-stats">
+        <div class="stat"><span class="stat-n">AI</span><span class="stat-l">Powered</span></div>
+        <div class="stat-divider"></div>
+        <div class="stat"><span class="stat-n">Zero</span><span class="stat-l">PII Exposed</span></div>
+        <div class="stat-divider"></div>
+        <div class="stat"><span class="stat-n">Real</span><span class="stat-l">Connections</span></div>
       </div>
     </div>
   </div>
 
-  <!-- LOGIN PROMPT (overlay) -->
+  <!-- LOGIN MODAL -->
   <div id="modal-login" class="modal hidden">
     <div class="modal-box">
       <button class="modal-close" onclick="hideModal('modal-login')">✕</button>
-      <h2>Welcome back</h2>
-      <p class="modal-sub">Enter your Student ID to continue</p>
-      <input type="text" id="login-id" class="field" placeholder="Your Student ID (e.g. abc123…)" />
-      <button class="btn-primary w-full" onclick="handleLogin()">Continue</button>
+      <div class="modal-icon">◈</div>
+      <h2>Access Node</h2>
+      <p class="modal-sub">Enter your Student ID to reconnect</p>
+      <input type="text" id="login-id" class="field" placeholder="Your Student ID…" />
+      <button class="btn-primary w-full" onclick="handleLogin()">Connect →</button>
     </div>
   </div>
 
   <!-- REGISTRATION PAGE -->
   <div id="page-register" class="page">
-    <div class="page-inner narrow">
+    <div class="reg-header">
       <button class="back-btn" onclick="showPage('page-landing')">← Back</button>
-      <h2 class="page-title">Create your profile</h2>
-      <p class="page-sub">Only your first name and avatar are shown to others.</p>
+      <div class="reg-logo">My Study Friends</div>
+    </div>
+    <div class="page-inner narrow">
+      <div class="step-indicator">
+        <span class="step-dot active"></span>
+        <span class="step-line"></span>
+        <span class="step-dot"></span>
+        <span class="step-line"></span>
+        <span class="step-dot"></span>
+      </div>
+      <h2 class="page-title">Build your profile</h2>
+      <p class="page-sub">Only your first name and avatar are visible to others. All PII stays private.</p>
 
       <div class="form-group">
         <label>First name only <span class="required">*</span></label>
@@ -64,9 +98,7 @@
 
       <div class="form-group">
         <label>Choose your avatar <span class="required">*</span></label>
-        <div class="avatar-grid" id="avatar-grid">
-          <!-- populated by JS -->
-        </div>
+        <div class="avatar-grid" id="avatar-grid"></div>
       </div>
 
       <div class="form-group">
@@ -77,7 +109,7 @@
       <div class="form-group">
         <label>Subjects you study</label>
         <div class="tag-input-wrap">
-          <input type="text" id="reg-subject-input" class="field" placeholder="Add a subject and press Enter" />
+          <input type="text" id="reg-subject-input" class="field" placeholder="Type a subject and press Enter" />
           <div class="tag-list" id="reg-subject-tags"></div>
         </div>
       </div>
@@ -85,22 +117,22 @@
       <div class="form-group">
         <label>Study style</label>
         <div class="pill-select" id="study-style-select">
-          <button class="pill" data-value="Silent focus">🤫 Silent focus</button>
-          <button class="pill" data-value="Collaborative">🤝 Collaborative</button>
-          <button class="pill" data-value="Discussion heavy">💬 Discussion heavy</button>
-          <button class="pill" data-value="Exam crammer">📚 Exam crammer</button>
-          <button class="pill" data-value="Casual & relaxed">☕ Casual & relaxed</button>
+          <button class="pill" data-value="Silent focus">Silent focus</button>
+          <button class="pill" data-value="Collaborative">Collaborative</button>
+          <button class="pill" data-value="Discussion heavy">Discussion heavy</button>
+          <button class="pill" data-value="Exam crammer">Exam crammer</button>
+          <button class="pill" data-value="Casual & relaxed">Casual & relaxed</button>
         </div>
       </div>
 
       <div class="form-group">
         <label>Best availability</label>
         <div class="pill-select" id="availability-select">
-          <button class="pill" data-value="Weekday mornings">🌅 Weekday mornings</button>
-          <button class="pill" data-value="Weekday afternoons">☀️ Weekday afternoons</button>
-          <button class="pill" data-value="Weekday evenings">🌆 Weekday evenings</button>
-          <button class="pill" data-value="Weekends">🏖️ Weekends</button>
-          <button class="pill" data-value="Late nights">🌙 Late nights</button>
+          <button class="pill" data-value="Weekday mornings">Weekday mornings</button>
+          <button class="pill" data-value="Weekday afternoons">Weekday afternoons</button>
+          <button class="pill" data-value="Weekday evenings">Weekday evenings</button>
+          <button class="pill" data-value="Weekends">Weekends</button>
+          <button class="pill" data-value="Late nights">Late nights</button>
         </div>
       </div>
 
@@ -110,18 +142,18 @@
       </div>
 
       <div class="form-group">
-        <label>Contact handles <span class="hint">(optional — only shown to matches)</span></label>
+        <label>Contact handles <span class="hint">(optional — only revealed to mutual matches)</span></label>
         <div class="contact-fields">
           <div class="contact-row">
-            <span class="contact-icon">📸</span>
+            <span class="contact-label">IG</span>
             <input type="text" id="reg-instagram" class="field" placeholder="Instagram handle" maxlength="30" />
           </div>
           <div class="contact-row">
-            <span class="contact-icon">💼</span>
+            <span class="contact-label">LI</span>
             <input type="text" id="reg-linkedin" class="field" placeholder="LinkedIn handle" maxlength="50" />
           </div>
           <div class="contact-row">
-            <span class="contact-icon">🎮</span>
+            <span class="contact-label">DC</span>
             <input type="text" id="reg-discord" class="field" placeholder="Discord username" maxlength="50" />
           </div>
         </div>
@@ -130,7 +162,7 @@
       <div id="reg-error" class="error-msg hidden"></div>
 
       <button class="btn-primary w-full" id="reg-submit" onclick="handleRegister()">
-        <span>Create profile & start swiping →</span>
+        <span>Initialise &amp; Start Matching →</span>
       </button>
     </div>
   </div>
@@ -138,40 +170,61 @@
   <!-- SWIPE PAGE -->
   <div id="page-swipe" class="page">
     <header class="app-header">
-      <div class="header-logo">Study<span class="accent">Mate</span></div>
+      <div class="header-logo">MSF<span class="header-dot">◆</span></div>
       <nav class="header-nav">
-        <button class="nav-btn active" onclick="showPage('page-swipe')" title="Swipe">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <button class="nav-btn active" onclick="showPage('page-swipe')" title="Match">
+          <!-- Neural/node icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="3"/>
+            <circle cx="4" cy="6" r="2"/>
+            <circle cx="20" cy="6" r="2"/>
+            <circle cx="4" cy="18" r="2"/>
+            <circle cx="20" cy="18" r="2"/>
+            <line x1="6" y1="6" x2="10" y2="10"/>
+            <line x1="18" y1="6" x2="14" y2="10"/>
+            <line x1="6" y1="18" x2="10" y2="14"/>
+            <line x1="18" y1="18" x2="14" y2="14"/>
+          </svg>
         </button>
-        <button class="nav-btn" onclick="showPage('page-matches')" title="Matches">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <button class="nav-btn" onclick="showPage('page-matches')" title="My Friends">
+          <!-- Grid/connections icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="3" y="3" width="7" height="7" rx="1"/>
+            <rect x="14" y="3" width="7" height="7" rx="1"/>
+            <rect x="3" y="14" width="7" height="7" rx="1"/>
+            <rect x="14" y="14" width="7" height="7" rx="1"/>
+          </svg>
           <span class="match-badge hidden" id="match-badge">0</span>
         </button>
       </nav>
     </header>
 
     <div class="swipe-area">
-      <div id="card-stack" class="card-stack">
-        <!-- cards injected by JS -->
-      </div>
+      <div id="card-stack" class="card-stack"></div>
       <div id="empty-state" class="empty-state hidden">
-        <div class="empty-icon">🎓</div>
-        <h3>You've seen everyone!</h3>
-        <p>Check back later for new study buddies, or see your matches.</p>
-        <button class="btn-primary" onclick="showPage('page-matches')">View Matches</button>
+        <div class="empty-icon">◎</div>
+        <h3>Scan complete</h3>
+        <p>You've seen all available study nodes. Check back later for new connections.</p>
+        <button class="btn-primary" onclick="showPage('page-matches')">View Connections</button>
       </div>
       <div id="swipe-loading" class="swipe-loading">
         <div class="spinner"></div>
-        <p>Finding study buddies…</p>
+        <p>Scanning study network…</p>
       </div>
     </div>
 
     <div class="swipe-actions" id="swipe-actions">
-      <button class="action-btn skip" id="btn-skip" onclick="swipeCard('left')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      <button class="action-btn skip" id="btn-skip" onclick="swipeCard('left')" title="Skip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
       </button>
-      <button class="action-btn like" id="btn-like" onclick="swipeCard('right')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      <button class="action-btn like" id="btn-like" onclick="swipeCard('right')" title="Connect">
+        <!-- Lightning / connect icon -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+        </svg>
       </button>
     </div>
   </div>
@@ -179,32 +232,44 @@
   <!-- MATCHES PAGE -->
   <div id="page-matches" class="page">
     <header class="app-header">
-      <div class="header-logo">Study<span class="accent">Mate</span></div>
+      <div class="header-logo">MSF<span class="header-dot">◆</span></div>
       <nav class="header-nav">
-        <button class="nav-btn" onclick="showPage('page-swipe')" title="Swipe">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <button class="nav-btn" onclick="showPage('page-swipe')" title="Match">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="3"/>
+            <circle cx="4" cy="6" r="2"/>
+            <circle cx="20" cy="6" r="2"/>
+            <circle cx="4" cy="18" r="2"/>
+            <circle cx="20" cy="18" r="2"/>
+            <line x1="6" y1="6" x2="10" y2="10"/>
+            <line x1="18" y1="6" x2="14" y2="10"/>
+            <line x1="6" y1="18" x2="10" y2="14"/>
+            <line x1="18" y1="18" x2="14" y2="14"/>
+          </svg>
         </button>
-        <button class="nav-btn active" onclick="showPage('page-matches')" title="Matches">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <button class="nav-btn active" onclick="showPage('page-matches')" title="My Friends">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="3" y="3" width="7" height="7" rx="1"/>
+            <rect x="14" y="3" width="7" height="7" rx="1"/>
+            <rect x="3" y="14" width="7" height="7" rx="1"/>
+            <rect x="14" y="14" width="7" height="7" rx="1"/>
+          </svg>
         </button>
       </nav>
     </header>
-
     <div class="matches-content">
-      <h2 class="section-title">Your Study Matches</h2>
-      <p class="section-sub">These are your mutual connections — say hi!</p>
-      <div id="matches-grid" class="matches-grid">
-        <!-- populated by JS -->
-      </div>
+      <h2 class="section-title">My Study Friends</h2>
+      <p class="section-sub">Mutual connections — contact details now unlocked.</p>
+      <div id="matches-grid" class="matches-grid"></div>
       <div id="matches-empty" class="empty-state hidden">
-        <div class="empty-icon">💫</div>
-        <h3>No matches yet</h3>
-        <p>Keep swiping to find your study buddies!</p>
-        <button class="btn-primary" onclick="showPage('page-swipe')">Start Swiping</button>
+        <div class="empty-icon">◎</div>
+        <h3>No connections yet</h3>
+        <p>Keep scanning to find your study network.</p>
+        <button class="btn-primary" onclick="showPage('page-swipe')">Start Scanning</button>
       </div>
       <div id="matches-loading" class="swipe-loading">
         <div class="spinner"></div>
-        <p>Loading matches…</p>
+        <p>Loading connections…</p>
       </div>
     </div>
   </div>
@@ -212,30 +277,65 @@
   <!-- MATCH MODAL -->
   <div id="modal-match" class="modal hidden">
     <div class="modal-box match-reveal">
-      <div class="match-fireworks">
-        <span>🎉</span><span>⭐</span><span>✨</span><span>🎊</span><span>💫</span>
-      </div>
-      <h2 class="match-title">It's a Match!</h2>
+      <div class="match-pulse-ring"></div>
+      <div class="match-pulse-ring delay"></div>
+      <div class="modal-icon match-icon">◆</div>
+      <h2 class="match-title">Connection Established</h2>
       <div class="match-avatars" id="match-modal-avatars"></div>
       <p class="match-name" id="match-modal-name"></p>
       <div class="match-contact" id="match-modal-contact"></div>
-      <button class="btn-primary w-full" onclick="hideModal('modal-match')">Keep Swiping ❤️</button>
-      <button class="btn-ghost w-full" onclick="hideModal('modal-match'); showPage('page-matches')">View All Matches</button>
+      <button class="btn-primary w-full" onclick="hideModal('modal-match')">Continue Scanning →</button>
+      <button class="btn-ghost-dark w-full" onclick="hideModal('modal-match'); showPage('page-matches')">View All Connections</button>
     </div>
   </div>
 
   <!-- STUDENT ID SAVE MODAL -->
   <div id="modal-save-id" class="modal hidden">
     <div class="modal-box">
-      <h2>Save your Student ID</h2>
-      <p class="modal-sub">This is your unique login. Keep it somewhere safe — it's the only way to access your profile.</p>
+      <div class="modal-icon">◈</div>
+      <h2>Save your Access Key</h2>
+      <p class="modal-sub">This is your unique login token. Store it securely — it's the only way to access your profile.</p>
       <div class="id-display" id="display-user-id"></div>
-      <button class="btn-secondary" onclick="copyUserId()">📋 Copy ID</button>
-      <button class="btn-primary w-full" onclick="hideModal('modal-save-id'); startSwiping()">Got it, let's swipe!</button>
+      <button class="btn-secondary" onclick="copyUserId()">⊕ Copy Key</button>
+      <button class="btn-primary w-full" onclick="hideModal('modal-save-id'); startSwiping()">Confirmed — Start Matching →</button>
     </div>
   </div>
 
   <script src="/js/avatars.js"></script>
   <script src="/js/app.js"></script>
+  <script>
+    // Animated dot-grid background canvas
+    const canvas = document.getElementById('grid-canvas');
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      let w, h, dots = [], frame = 0;
+      function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+        dots = [];
+        const spacing = 44;
+        for (let x = 0; x < w; x += spacing) {
+          for (let y = 0; y < h; y += spacing) {
+            dots.push({ x, y, ox: x, oy: y, vx: 0, vy: 0 });
+          }
+        }
+      }
+      function draw() {
+        ctx.clearRect(0, 0, w, h);
+        frame++;
+        dots.forEach((d, i) => {
+          const pulse = Math.sin(frame * 0.012 + i * 0.15) * 0.5 + 0.5;
+          ctx.beginPath();
+          ctx.arc(d.x, d.y, 1.2, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(0,255,200,${0.08 + pulse * 0.12})`;
+          ctx.fill();
+        });
+        requestAnimationFrame(draw);
+      }
+      resize();
+      draw();
+      window.addEventListener('resize', resize);
+    }
+  </script>
 </body>
 </html>
