@@ -78,45 +78,6 @@ Update your avatar, bio, subjects and availability any time. Your study life cha
 </table>
 
 ---
-
-## 🚀 Getting started in 3 steps
-
-```
-1.  Visit mystudyfriends.netlify.app
-2.  Click "Initialize Profile" and build your profile in under 2 minutes
-3.  Browse the Study Network and reach out to your new study buddy
-```
-
-> 💡 **Pro tip:** Download your QR code when you register. It's your login key — scan it to jump straight back in without typing anything.
-
----
-
-## 🧩 Your profile includes
-
-| What you share publicly | What stays private |
-|---|---|
-| First name only | Last name |
-| Emoji avatar | Email address |
-| University | Student ID |
-| Subjects | Phone number |
-| Study style & availability | Any other personal info |
-| Short bio | |
-| Contact handles *(your choice)* | |
-
----
-
-## 📖 How it works
-
-**Register** — Choose an emoji avatar and enter your first name. Add your university, the subjects you're studying, when you're free to study, and a short bio about what kind of study buddy you are. Optionally drop your Instagram, LinkedIn or Discord handle so matches can reach you.
-
-**Explore** — Once you're in, you land on the Study Network — a gallery of every student on the platform. Every card shows their avatar, name, university, subjects and a preview of their bio. Click any card for their full profile and contact details.
-
-**Connect** — See someone studying the same units? Same exam week? Same "silent focus" vibe? Hit them up directly on whatever platform they've shared. No middleman, no in-app messaging, just a direct human connection.
-
-**Come back** — Save your QR code or copy your Access Key. Next time, scan the QR and you're straight back in. Update your profile any time as your subjects and schedule change.
-
----
-
 ## 🎯 Perfect for
 
 - 📚 Finding a study partner for your toughest unit
