@@ -1,0 +1,15 @@
+{
+  "name": "studymate",
+  "version": "1.0.0",
+  "description": "StudyMate - Find your perfect study buddy",
+  "scripts": {
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "@azure/data-tables": "^13.2.2",
+    "@azure/storage-blob": "^12.17.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}
