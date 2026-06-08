@@ -664,7 +664,7 @@ html, body {
   z-index: 1;          /* behind header/content but above void bg */
   display: none;       /* shown via JS when not on landing */
 }
-.border-frames.visible { display: block; }
+.border-frames.visible { display: none; } /* images only on landing */
 
 .bf {
   position: absolute;
@@ -906,47 +906,4 @@ textarea.field { color: var(--cyan) !important; }
 @media (min-width: 900px)  { .gallery-grid { grid-template-columns: repeat(4, 1fr); } }
 @media (min-width: 1200px) { .gallery-grid { grid-template-columns: repeat(5, 1fr); } }
 
-/* ================================================
-   CONTENT CLEARANCE FOR BORDER FRAMES
-   On screens wide enough to show the frames (≥ 600px),
-   push all inner-page content inward so frames never
-   overlap headings, grids, or form fields.
-   ================================================ */
-@media (min-width: 600px) {
-  /* Gallery: header + content area */
-  .app-header {
-    padding-left: 136px;
-    padding-right: 136px;
-  }
-  .gallery-content {
-    padding-left: 140px;
-    padding-right: 140px;
-  }
-  /* Registration / Edit page inner content */
-  .reg-header {
-    padding-left: 136px;
-    padding-right: 136px;
-  }
-  .page-inner {
-    padding-left: 152px;
-    padding-right: 152px;
-    max-width: 100%;       /* let padding do the constraining */
-  }
-  /* Modals are centred over the dim overlay — no change needed */
-}
 
-/* On very wide screens, frames are 120px each side, so even more room */
-@media (min-width: 900px) {
-  .app-header    { padding-left: 144px; padding-right: 144px; }
-  .gallery-content { padding-left: 148px; padding-right: 148px; }
-  .reg-header    { padding-left: 144px; padding-right: 144px; }
-  .page-inner    { padding-left: 160px; padding-right: 160px; }
-}
-
-/* On small screens frames are hidden or very narrow — restore normal padding */
-@media (max-width: 599px) {
-  .app-header    { padding-left: 14px; padding-right: 14px; }
-  .gallery-content { padding-left: 14px; padding-right: 14px; }
-  .reg-header    { padding-left: 14px; padding-right: 14px; }
-  .page-inner    { padding-left: 14px; padding-right: 14px; }
-}
