@@ -43,7 +43,7 @@ exports.handler = async (event, context) => {
     // Find all matches involving this user
     const matchesIter = client.listEntities({
       queryOptions: {
-        filter: `PartitionKey eq 'match' and (RowKey ge '${userId}_' and RowKey lt '${userId}_~' or RowKey ge '0' and RowKey lt 'z')`,
+        filter: "PartitionKey eq 'match'",
       },
     });
 

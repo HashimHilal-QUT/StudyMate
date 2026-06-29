@@ -58,10 +58,11 @@ exports.handler = async (event, context) => {
     const userId = uuidv4();
     const client = getTableClient();
 
-    // Validate contact fields - only instagram/linkedin/discord handles (no full URLs with personal info)
+    // Validate contact fields - only social handles/usernames, not full personal URLs
     const safeContact = {};
     if (contact?.instagram) safeContact.instagram = contact.instagram.replace(/[^a-zA-Z0-9._]/g, "").substring(0, 30);
     if (contact?.linkedin) safeContact.linkedin = contact.linkedin.replace(/[^a-zA-Z0-9._-]/g, "").substring(0, 50);
+    if (contact?.facebook) safeContact.facebook = contact.facebook.replace(/[^a-zA-Z0-9._-]/g, "").substring(0, 50);
     if (contact?.discord) safeContact.discord = contact.discord.substring(0, 50);
 
     const entity = {

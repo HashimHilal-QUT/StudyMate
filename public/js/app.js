@@ -41,15 +41,17 @@ async function handleLogin() {
   const input = document.getElementById("login-id").value.trim();
   if (!input) return;
   try {
-    const res = await fetch(`/.netlify/functions/get-profiles?userId=${encodeURIComponent(input)}`);
-    if (res.ok) {
-      STATE.userId = input;
-      localStorage.setItem("sm_userId", input);
-      hideModal("modal-login");
-      showPage("page-gallery");
-    } else {
+    const res = await fetch(`/.netlify/functions/get-profiles?userId=${encodeURIComponent(input)}&includeSelf=true`);
+    const data = await res.json();
+    const foundProfile = (data.profiles || []).some(profile => profile.id === input);
+    if (!res.ok || !foundProfile) {
       alert("Student ID not found. Please check and try again.");
+      return;
     }
+    STATE.userId = input;
+    localStorage.setItem("sm_userId", input);
+    hideModal("modal-login");
+    showPage("page-gallery");
   } catch (e) {
     alert("Could not connect. Please try again.");
   }
@@ -146,6 +148,7 @@ async function handleRegister() {
   const bio           = document.getElementById("reg-bio").value.trim();
   const instagram     = document.getElementById("reg-instagram").value.trim();
   const linkedin      = document.getElementById("reg-linkedin").value.trim();
+  const facebook      = document.getElementById("reg-facebook").value.trim();
   const discord       = document.getElementById("reg-discord").value.trim();
 
   document.getElementById("reg-error").classList.add("hidden");
@@ -160,7 +163,7 @@ async function handleRegister() {
     const res = await fetch("/.netlify/functions/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ firstName, avatar: selectedAvatar.dataset.key, subjects, studyStyle, availability, university, bio, contact: { instagram, linkedin, discord } }),
+      body: JSON.stringify({ firstName, avatar: selectedAvatar.dataset.key, subjects, studyStyle, availability, university, bio, contact: { instagram, linkedin, facebook, discord } }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Registration failed");
@@ -320,10 +323,11 @@ function openProfile(profile) {
   // Contact
   const contactEl = document.getElementById("modal-contact");
   const c = profile.contact || {};
-  if (c.instagram || c.linkedin || c.discord) {
+  if (c.instagram || c.linkedin || c.facebook || c.discord) {
     let html = "";
     if (c.instagram) html += `<div class="profile-contact-item"><span class="pci-label">IG</span><span class="pci-value">@${escHtml(c.instagram)}</span></div>`;
     if (c.linkedin)  html += `<div class="profile-contact-item"><span class="pci-label">LI</span><span class="pci-value">${escHtml(c.linkedin)}</span></div>`;
+    if (c.facebook)  html += `<div class="profile-contact-item"><span class="pci-label">FB</span><span class="pci-value">${escHtml(c.facebook)}</span></div>`;
     if (c.discord)   html += `<div class="profile-contact-item"><span class="pci-label">DC</span><span class="pci-value">${escHtml(c.discord)}</span></div>`;
     contactEl.innerHTML = html;
   } else {
@@ -500,16 +504,18 @@ async function autoLoginFromQR(value) {
   const statusEl = document.getElementById("qr-status");
   if (statusEl) statusEl.textContent = "QR detected — verifying…";
   try {
-    const res = await fetch(`/.netlify/functions/get-profiles?userId=${encodeURIComponent(value)}`);
-    if (res.ok) {
-      STATE.userId = value;
-      localStorage.setItem("sm_userId", value);
-      hideModal("modal-login");
-      showPage("page-gallery");
-    } else {
+    const res = await fetch(`/.netlify/functions/get-profiles?userId=${encodeURIComponent(value)}&includeSelf=true`);
+    const data = await res.json();
+    const foundProfile = (data.profiles || []).some(profile => profile.id === value);
+    if (!res.ok || !foundProfile) {
       if (statusEl) statusEl.textContent = "QR not recognised — try the Key tab";
       setTimeout(startQRScan, 1500);
+      return;
     }
+    STATE.userId = value;
+    localStorage.setItem("sm_userId", value);
+    hideModal("modal-login");
+    showPage("page-gallery");
   } catch (e) {
     if (statusEl) statusEl.textContent = "Connection error — try again";
   }
@@ -607,6 +613,7 @@ function loadEditProfile() {
     const c = profile.contact || {};
     document.getElementById("edit-instagram").value = c.instagram || "";
     document.getElementById("edit-linkedin").value  = c.linkedin  || "";
+    document.getElementById("edit-facebook").value  = c.facebook  || "";
     document.getElementById("edit-discord").value   = c.discord   || "";
 
     // Wire up bio counter
@@ -687,6 +694,7 @@ async function handleEditProfile() {
   const bio            = document.getElementById("edit-bio").value.trim();
   const instagram      = document.getElementById("edit-instagram").value.trim();
   const linkedin       = document.getElementById("edit-linkedin").value.trim();
+  const facebook       = document.getElementById("edit-facebook").value.trim();
   const discord        = document.getElementById("edit-discord").value.trim();
 
   const errEl     = document.getElementById("edit-error");
@@ -716,7 +724,7 @@ async function handleEditProfile() {
         availability,
         university,
         bio,
-        contact: { instagram, linkedin, discord },
+        contact: { instagram, linkedin, facebook, discord },
       }),
     });
 
