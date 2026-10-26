@@ -13,7 +13,7 @@
   <title>My Study Friends — Find your study crew</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Orbitron:wght@400;600;700;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;600&family=Space+Grotesk:wght@300;400;500;600;700&family=Orbitron:wght@400;600;700;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/main.css" />
 </head>
 <body>
@@ -54,21 +54,22 @@
             <line x1="30" y1="20" x2="38" y2="20" stroke="currentColor" stroke-width="1.5"/>
           </svg>
         </div>
-        <div class="ai-badge">◆ FIND YOUR STUDY ORBIT</div>
+        <div class="ai-badge">◆ FIND YOUR STUDY MATE</div>
         <h1 class="landing-title">My Study<br/><span class="accent">Friends</span></h1>
-        <p class="landing-sub">Shared interests. Real connections.</p>
-        <p class="landing-desc">Explore your city, discover your university crew, and connect through the subjects and study habits you share.</p>
+        <p class="landing-sub">Same subjects. Better company.</p>
+        <p class="landing-desc">From “does anyone get this?” to “we’ve got this.” Find your study mate, tackle tough units together, and turn library sessions into friendships.</p>
         <div class="landing-actions">
           <button class="btn-primary" onclick="showPage('page-register')">
-            <span class="btn-icon">⬡</span> Initialize Profile
+            <span class="btn-icon">⬡</span> Find my study mate
           </button>
+          <button class="btn-ghost landing-demo-button" onclick="openNetworkDemo()">Try a Demo Network ↗</button>
           <button class="btn-ghost" onclick="showLoginPrompt()">Sign in</button>
           <button class="btn-ghost" data-install-app onclick="installApp()">Install app ↓</button>
         </div>
         <div class="landing-stats">
-          <div class="stat"><span class="stat-n">Your</span><span class="stat-l">Study orbit</span></div>
+          <div class="stat"><span class="stat-n">Your</span><span class="stat-l">Uni crew</span></div>
           <div class="stat-divider"></div>
-          <div class="stat"><span class="stat-n">Zero</span><span class="stat-l">Email messages</span></div>
+          <div class="stat"><span class="stat-n">Highly</span><span class="stat-l">Secure</span></div>
           <div class="stat-divider"></div>
           <div class="stat"><span class="stat-n">Real</span><span class="stat-l">Connections</span></div>
         </div>
@@ -87,6 +88,9 @@
       </div>
 
     </div>
+    <footer class="landing-footer">
+      <blockquote class="friendship-quote">“School gave us lessons, but friends turned them into stories worth remembering.”</blockquote>
+    </footer>
   </div>
 
   <!-- ==================== LOGIN MODAL ==================== -->
@@ -227,13 +231,14 @@
         <input type="text" id="search-input" class="search-field" placeholder="Search name, subject, city, uni…" oninput="filterGallery()" />
       </div>
       <div class="header-actions">
-        <button class="nav-btn" onclick="showPage('page-edit')" title="Edit Profile">
+        <button class="demo-toggle" id="demo-join" onclick="joinFromDemo()" hidden>Join the network →</button>
+        <button class="nav-btn" data-member-only onclick="showPage('page-edit')" title="Edit Profile">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
           </svg>
         </button>
-        <button class="nav-btn" onclick="handleLogout()" title="Logout">
+        <button class="nav-btn" data-member-only onclick="handleLogout()" title="Logout">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
             <polyline points="16 17 21 12 16 7"/>
@@ -256,9 +261,9 @@
         <label class="cluster-control" for="cluster-by">Group by
           <select id="cluster-by" onchange="renderGallery()"><option value="city">City</option><option value="university">University</option></select>
         </label>
-        <button type="button" class="demo-toggle" id="demo-toggle" aria-pressed="false" onclick="toggleNetworkDemo()">Try a demo network</button>
+        <button type="button" class="demo-toggle" id="demo-toggle" onclick="closeNetworkDemo()" hidden>Back to homepage</button>
       </div>
-      <p class="network-explainer" id="network-explainer">Discover your study orbit. Drag cards, tap a student, or explore what a group shares.</p>
+      <p class="network-explainer" id="network-explainer">Find your study mate. Drag cards, tap a student, or explore what a group shares.</p>
       <p id="network-demo-notice" class="demo-notice hidden">Demo preview · Fictional students, not real profiles. Nothing is saved.</p>
       <div id="network-summary" class="network-summary" aria-live="polite"></div>
       <div id="network-groups" class="network-groups"></div>

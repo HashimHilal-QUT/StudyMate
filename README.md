@@ -40,7 +40,7 @@ The dropdown contains 42 universities from [Study Australia](https://www.studyau
 
 Clustering runs entirely in JavaScript. Cyan links connect students to groups; violet links show shared subjects. Callouts count actual shared subjects, study styles and availability across distinct profiles. Matching ignores capitalization and extra spaces; it does not infer interests from bios or send data to an AI service. Missing locations have explicit “not shared” groups.
 
-Map previews show at most 60 students and 12 per group; cards show every search result. Drag cards, or use keyboard focus and Enter/Space to open profiles. Reduced-motion preferences disable the spring animation. **Try a demo network** shows fictional profiles in memory, never database records.
+Map previews show at most 60 students and 12 per group; cards show every search result. Drag cards, or use keyboard focus and Enter/Space to open profiles. Reduced-motion preferences disable the spring animation. **Try a Demo Network** on the homepage works before sign-in and shows fictional profiles in memory, never database records. Guests can explore the map, search and cards, then return home or join the network.
 
 ## Code map
 

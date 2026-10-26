@@ -230,6 +230,11 @@ function showError(msg) {
 // GALLERY
 // ========================
 async function loadGallery() {
+  if (networkDemo) {
+    document.getElementById("gallery-loading").classList.add("hidden");
+    filterGallery();
+    return;
+  }
   if (!STATE.userId) return;
 
   const grid    = document.getElementById("gallery-grid");

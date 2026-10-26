@@ -30,9 +30,23 @@ function setNetworkView(view) {
   networkView = view === 'cards' ? 'cards' : 'graph';
   renderGallery();
 }
-function toggleNetworkDemo() {
-  networkDemo = !networkDemo;
-  filterGallery();
+function openNetworkDemo() {
+  networkDemo = true;
+  document.getElementById('search-input').value = '';
+  showPage('page-gallery');
+  document.querySelector('.gallery-content').scrollTop = 0;
+}
+function closeNetworkDemo() {
+  networkDemo = false;
+  stopNetworkAnimation();
+  document.getElementById('search-input').value = '';
+  if (STATE.userId) showPage('page-gallery');
+  else showPage('page-landing');
+}
+function joinFromDemo() {
+  networkDemo = false;
+  document.getElementById('search-input').value = '';
+  showPage('page-register');
 }
 function signalText(signal) {
   const prefix = signal.type === 'subject' ? 'studying' : signal.type === 'style' ? 'prefer' : 'available';
@@ -46,14 +60,16 @@ function renderNetwork(profiles) {
   const groups = StudyNetwork.clusters(profiles, dimension);
   document.getElementById('view-graph').setAttribute('aria-pressed', networkView === 'graph');
   document.getElementById('view-cards').setAttribute('aria-pressed', networkView === 'cards');
-  document.getElementById('demo-toggle').setAttribute('aria-pressed', networkDemo);
-  document.getElementById('demo-toggle').textContent = networkDemo ? 'Back to real students' : 'Try a demo network';
+  document.getElementById('demo-toggle').hidden = !networkDemo;
+  document.getElementById('demo-toggle').textContent = STATE.userId ? 'Back to my network' : 'Back to homepage';
+  document.getElementById('demo-join').hidden = !!STATE.userId || !networkDemo;
+  document.querySelectorAll('[data-member-only]').forEach(button => { button.hidden = !STATE.userId; });
   document.getElementById('network-demo-notice').classList.toggle('hidden', !networkDemo);
   document.getElementById('gallery-empty').classList.toggle('hidden', profiles.length > 0);
   document.getElementById('gallery-count').textContent = `${profiles.length} ${networkDemo ? 'demo ' : ''}student${profiles.length === 1 ? '' : 's'}`;
   document.getElementById('network-summary').textContent = profiles.length
     ? `${groups.length} ${dimension === 'city' ? 'city' : 'university'} group${groups.length === 1 ? '' : 's'} · ${networkView === 'graph' ? 'Cyan links show groups. Violet links show shared subjects.' : 'Explore a group and open any student profile.'}`
-    : 'Your network starts here. Invite a friend, or try the demo to explore connections.';
+    : 'Your network starts here. Invite a friend to find your first study mate.';
   // Keep the interactive map bounded; the cards view always includes every matching student.
   let remaining = 60;
   for (const group of groups) {
