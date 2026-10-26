@@ -3,8 +3,8 @@
    ============================================================ */
 
 const STATE = {
-  userId:   localStorage.getItem("sm_userId") || null,
-  myAvatar: localStorage.getItem("sm_avatar") || null,
+  userId: null,
+  myAvatar: null,
   profiles: [],
   filtered: [],
 };
@@ -26,51 +26,67 @@ function showLoginPrompt() { showModal("modal-login"); }
 // ========================
 // BOOT
 // ========================
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   initAvatarGrid();
   initPillSelects();
   initBioCounter();
   initSubjectTags();
-  if (STATE.userId) showPage("page-gallery");
+  localStorage.removeItem("sm_userId");
+  localStorage.removeItem("sm_avatar");
+  try {
+    const res = await fetch("/.netlify/functions/session");
+    if (res.ok) {
+      const data = await res.json();
+      STATE.userId = data.userId;
+      STATE.myAvatar = data.profile.avatar;
+      showPage("page-gallery");
+
+    }
+  } catch { /* Landing remains available when offline. */ }
 });
 
 // ========================
 // LOGIN
 // ========================
 async function handleLogin() {
-  const input = document.getElementById("login-id").value.trim();
-  if (!input) return;
+  const input = document.getElementById("login-id");
+  const error = document.getElementById("login-error");
+  const button = document.getElementById("login-submit");
+  error.classList.add("hidden");
+  if (!input.value.trim()) { input.focus(); return; }
+  button.disabled = true;
   try {
-    const res = await fetch(`/.netlify/functions/get-profiles?userId=${encodeURIComponent(input)}&includeSelf=true`);
+    const res = await fetch("/.netlify/functions/session", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ recoveryCode: input.value.trim() }),
+    });
     const data = await res.json();
-    const foundProfile = (data.profiles || []).some(profile => profile.id === input);
-    if (!res.ok || !foundProfile) {
-      alert("Student ID not found. Please check and try again.");
-      return;
-    }
-    STATE.userId = input;
-    localStorage.setItem("sm_userId", input);
+    if (!res.ok) throw new Error(data.error || "Could not restore your profile.");
+    STATE.userId = data.userId;
+    input.value = "";
     hideModal("modal-login");
     showPage("page-gallery");
-  } catch (e) {
-    alert("Could not connect. Please try again.");
-  }
+  } catch (err) {
+    error.textContent = err.message || "Could not connect. Please try again.";
+    error.classList.remove("hidden");
+  } finally { button.disabled = false; }
 }
 
-// ========================
-// LOGOUT
-// ========================
 function handleLogout() { showModal("modal-logout"); }
-
-function confirmLogout() {
-  STATE.userId = null;
-  STATE.myAvatar = null;
-  STATE.profiles = [];
-  STATE.filtered = [];
-  localStorage.removeItem("sm_userId");
-  localStorage.removeItem("sm_avatar");
-  hideModal("modal-logout");
-  showPage("page-landing");
+async function confirmLogout() {
+  try {
+    const res = await fetch("/.netlify/functions/session", { method: "DELETE" });
+    if (!res.ok) throw new Error();
+    STATE.userId = null;
+    STATE.myAvatar = null;
+    STATE.profiles = [];
+    STATE.filtered = [];
+    document.getElementById("gallery-grid").innerHTML = "";
+    document.getElementById("modal-contact").textContent = "";
+    document.getElementById("display-recovery-code").textContent = "";
+    hideModal("modal-logout");
+    showPage("page-landing");
+  } catch { alert("Could not log out. Please try again."); }
 }
 
 // ========================
@@ -141,7 +157,7 @@ function initBioCounter() {
 
 async function handleRegister() {
   const firstName     = document.getElementById("reg-firstname").value.trim();
-  const selectedAvatar = document.querySelector(".avatar-option.selected");
+  const selectedAvatar = document.querySelector("#avatar-grid .avatar-option.selected");
   const university    = document.getElementById("reg-university").value.trim();
   const studyStyle    = document.querySelector("#study-style-select .pill.selected")?.dataset.value || "";
   const availability  = document.querySelector("#availability-select .pill.selected")?.dataset.value || "";
@@ -170,11 +186,12 @@ async function handleRegister() {
 
     STATE.userId  = data.userId;
     STATE.myAvatar = selectedAvatar.dataset.key;
-    localStorage.setItem("sm_userId",  data.userId);
-    localStorage.setItem("sm_avatar", selectedAvatar.dataset.key);
 
-    onSaveIdModalOpen(data.userId);
+
+    document.getElementById("display-recovery-code").textContent = data.recoveryCode;
     showModal("modal-save-id");
+    btn.disabled = false;
+    btn.innerHTML = "<span>Initialise &amp; Enter the Network →</span>";
   } catch (err) {
     showError(err.message || "Something went wrong. Please try again.");
     btn.disabled = false;
@@ -207,13 +224,16 @@ async function loadGallery() {
   count.textContent = "";
 
   try {
-    const res  = await fetch(`/.netlify/functions/get-profiles?userId=${encodeURIComponent(STATE.userId)}`);
+    const res  = await fetch(`/.netlify/functions/get-profiles`);
     const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Could not load students.");
     STATE.profiles = data.profiles || [];
     STATE.filtered = [...STATE.profiles];
   } catch (e) {
-    STATE.profiles = [];
-    STATE.filtered = [];
+    loading.classList.add("hidden");
+    empty.classList.remove("hidden");
+    empty.textContent = "Could not load students. Please check your connection and try again.";
+    return;
   }
 
   loading.classList.add("hidden");
@@ -349,184 +369,24 @@ function escHtml(str) {
     .replace(/"/g, "&quot;");
 }
 
-// ================================================
-// QR CODE — using qrcode.min.js (same lib as the
-// Node-JS-Simple-QR-Code-Generator reference repo)
-// API: QRCode.toCanvas(canvasEl, text [, opts])
-//      QRCode.toDataURL(text [, opts])  → Promise<dataURL>
-// ================================================
-
-function generateQR(userId) {
-  const canvas = document.getElementById("qr-canvas");
-  if (!canvas) return;
-
-  const opts = {
-    width:           180,
-    margin:          2,
-    color: {
-      dark:  "#050810",   // deep navy dots — matches site bg
-      light: "#ffffff",   // white background so it scans
-    },
-    errorCorrectionLevel: "H",
-  };
-
-  QRCode.toCanvas(canvas, userId, opts, function (err) {
-    if (err) {
-      console.error("QR generation error:", err);
-      // Fallback: write text on canvas
-      const ctx = canvas.getContext("2d");
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, 180, 180);
-      ctx.fillStyle = "#050810";
-      ctx.font = "10px monospace";
-      ctx.fillText("QR unavailable", 10, 90);
-    }
-  });
+// Recovery codes are shown once and never saved in browser storage.
+async function copyRecoveryCode(button) {
+  try {
+    await navigator.clipboard.writeText(document.getElementById("display-recovery-code").textContent);
+    button.textContent = "Copied!";
+    setTimeout(() => button.textContent = "Copy code", 2000);
+  } catch { alert("Please select and copy the recovery code manually."); }
 }
-
-// Called when the save-ID modal opens
-function onSaveIdModalOpen(userId) {
-  document.getElementById("display-user-id").textContent = userId;
-  // Small delay so canvas is visible in the DOM
-  setTimeout(() => generateQR(userId), 60);
-}
-
-// Download the QR as PNG
-function downloadQR() {
-  const canvas = document.getElementById("qr-canvas");
-  if (!canvas) return;
+function downloadRecoveryCode() {
+  const code = document.getElementById("display-recovery-code").textContent;
+  const blob = new Blob([`My Study Friends recovery code\n\n${code}\n\nKeep this private. Restore your profile at https://mystudyfriends.netlify.app/\n`], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
-  link.download = "mystudyfriends-access-key.png";
-  link.href = canvas.toDataURL("image/png");
+  link.href = url;
+  link.download = "my-study-friends-recovery-code.txt";
   link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
-
-function copyUserId() {
-  const id = document.getElementById("display-user-id").textContent;
-  navigator.clipboard.writeText(id).then(() => {
-    const btn = event.target;
-    const orig = btn.textContent;
-    btn.textContent = "✓ Copied!";
-    setTimeout(() => btn.textContent = orig, 2000);
-  });
-}
-
-// ================================================
-// LOGIN TAB SWITCHING + QR SCAN
-// ================================================
-let _scanStream   = null;
-let _scanInterval = null;
-
-function switchLoginTab(tab) {
-  document.getElementById("login-panel-id").classList.toggle("hidden", tab !== "id");
-  document.getElementById("login-panel-qr").classList.toggle("hidden", tab !== "qr");
-  document.getElementById("tab-id").classList.toggle("active", tab === "id");
-  document.getElementById("tab-qr").classList.toggle("active", tab === "qr");
-
-  if (tab === "qr") {
-    startQRScan();
-  } else {
-    stopQRScan();
-  }
-}
-
-async function startQRScan() {
-  const statusEl = document.getElementById("qr-status");
-  const video    = document.getElementById("qr-video");
-  if (!video) return;
-
-  statusEl.textContent = "Requesting camera…";
-
-  try {
-    _scanStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "environment" },
-    });
-    video.srcObject = _scanStream;
-    statusEl.textContent = "Align your QR code in the frame";
-
-    if ("BarcodeDetector" in window) {
-      // Native Chrome/Edge API — fastest
-      const detector = new BarcodeDetector({ formats: ["qr_code"] });
-      _scanInterval = setInterval(async () => {
-        try {
-          const codes = await detector.detect(video);
-          if (codes.length > 0) {
-            stopQRScan();
-            autoLoginFromQR(codes[0].rawValue);
-          }
-        } catch (_) {}
-      }, 400);
-    } else {
-      // Fallback: use jsQR loaded on demand
-      loadJsQR().then(() => {
-        _scanInterval = setInterval(() => {
-          if (!window.jsQR || video.readyState < 2) return;
-          const c   = document.createElement("canvas");
-          c.width   = video.videoWidth  || 320;
-          c.height  = video.videoHeight || 320;
-          c.getContext("2d").drawImage(video, 0, 0, c.width, c.height);
-          const img  = c.getContext("2d").getImageData(0, 0, c.width, c.height);
-          const code = window.jsQR(img.data, img.width, img.height);
-          if (code?.data) {
-            stopQRScan();
-            autoLoginFromQR(code.data);
-          }
-        }, 400);
-      });
-    }
-  } catch (err) {
-    statusEl.textContent = "Camera access denied — paste your key instead";
-  }
-}
-
-function loadJsQR() {
-  return new Promise(resolve => {
-    if (window.jsQR) { resolve(); return; }
-    const s  = document.createElement("script");
-    s.src    = "https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js";
-    s.onload = resolve;
-    document.head.appendChild(s);
-  });
-}
-
-function stopQRScan() {
-  clearInterval(_scanInterval);
-  _scanInterval = null;
-  if (_scanStream) {
-    _scanStream.getTracks().forEach(t => t.stop());
-    _scanStream = null;
-  }
-  const video = document.getElementById("qr-video");
-  if (video) video.srcObject = null;
-}
-
-async function autoLoginFromQR(value) {
-  const statusEl = document.getElementById("qr-status");
-  if (statusEl) statusEl.textContent = "QR detected — verifying…";
-  try {
-    const res = await fetch(`/.netlify/functions/get-profiles?userId=${encodeURIComponent(value)}&includeSelf=true`);
-    const data = await res.json();
-    const foundProfile = (data.profiles || []).some(profile => profile.id === value);
-    if (!res.ok || !foundProfile) {
-      if (statusEl) statusEl.textContent = "QR not recognised — try the Key tab";
-      setTimeout(startQRScan, 1500);
-      return;
-    }
-    STATE.userId = value;
-    localStorage.setItem("sm_userId", value);
-    hideModal("modal-login");
-    showPage("page-gallery");
-  } catch (e) {
-    if (statusEl) statusEl.textContent = "Connection error — try again";
-  }
-}
-
-// Stop camera when login modal closes
-const _basehideModal = hideModal;
-window.hideModal = function(id) {
-  _basehideModal(id);
-  if (id === "modal-login") stopQRScan();
-};
 
 // ================================================
 // PROFILE MODAL — CLICK BACKDROP TO CLOSE
@@ -566,15 +426,6 @@ const editSubjects = [];
 function loadEditProfile() {
   if (!STATE.userId) { showPage("page-gallery"); return; }
 
-  // Fetch the user's own profile
-  fetch(`/.netlify/functions/get-profiles?userId=${encodeURIComponent(STATE.userId)}&includeSelf=true`)
-    .then(r => r.json())
-    .then(data => {
-      // get-profiles excludes self, so fetch all and find by checking stored data
-      // We'll use a dedicated approach: re-fetch with own ID
-    });
-
-  // Use a direct approach — fetch own profile via a targeted call
   fetchOwnProfile().then(profile => {
     if (!profile) return;
 
@@ -648,11 +499,10 @@ function loadEditProfile() {
 
 async function fetchOwnProfile() {
   try {
-    const res  = await fetch(
-      `/.netlify/functions/get-profiles?userId=${encodeURIComponent(STATE.userId)}&includeSelf=true`
-    );
+    const res = await fetch("/.netlify/functions/session");
+    if (!res.ok) return null;
     const data = await res.json();
-    return (data.profiles || []).find(p => p.id === STATE.userId) || null;
+    return data.profile || null;
   } catch {
     return null;
   }
@@ -733,7 +583,7 @@ async function handleEditProfile() {
 
     // Update stored avatar
     STATE.myAvatar = selectedAvatar.dataset.key;
-    localStorage.setItem("sm_avatar", selectedAvatar.dataset.key);
+
 
     successEl.classList.remove("hidden");
     setTimeout(() => successEl.classList.add("hidden"), 3000);

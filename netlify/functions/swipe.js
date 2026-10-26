@@ -1,3 +1,4 @@
+const auth = require('./lib/auth');
 // netlify/functions/swipe.js
 // Records a swipe (left/right) and checks for mutual matches
 
@@ -21,6 +22,7 @@ exports.handler = async (event, context) => {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type",
     "Content-Type": "application/json",
+    "Cache-Control": "no-store",
   };
 
   if (event.httpMethod === "OPTIONS") {
@@ -32,8 +34,10 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const { swiperId, targetId, direction } = JSON.parse(event.body);
+    const { targetId, direction } = JSON.parse(event.body);
 
+    const swiperId = await auth.authenticate(event, getTableClient());
+    if (!swiperId) return auth.response(401, { error: "Please sign in." });
     if (!swiperId || !targetId || !["left", "right"].includes(direction)) {
       return {
         statusCode: 400,

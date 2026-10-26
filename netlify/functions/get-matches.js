@@ -1,3 +1,4 @@
+const auth = require('./lib/auth');
 // netlify/functions/get-matches.js
 // Returns all mutual matches for a given user, with contact info revealed
 
@@ -21,6 +22,7 @@ exports.handler = async (event, context) => {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type",
     "Content-Type": "application/json",
+    "Cache-Control": "no-store",
   };
 
   if (event.httpMethod === "OPTIONS") {
@@ -28,11 +30,11 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const { userId } = event.queryStringParameters || {};
+    const userId = await auth.authenticate(event, getTableClient());
 
     if (!userId) {
       return {
-        statusCode: 400,
+        statusCode: 401,
         headers,
         body: JSON.stringify({ error: "userId is required" }),
       };

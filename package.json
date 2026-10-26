@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "StudyMate - Find your perfect study buddy",
   "scripts": {
-    "build": "echo 'No build step required'"
+    "build": "echo 'No build step required'",
+    "test": "node --test"
   },
   "dependencies": {
     "@azure/data-tables": "^13.2.2",

@@ -86,28 +86,12 @@
     <div class="modal-box">
       <button class="modal-close" onclick="hideModal('modal-login')">✕</button>
       <div class="modal-icon">◈</div>
-      <h2>Access Node</h2>
-      <div class="login-tabs">
-        <button class="login-tab active" id="tab-id" onclick="switchLoginTab('id')">Key</button>
-        <button class="login-tab" id="tab-qr" onclick="switchLoginTab('qr')">QR Scan</button>
-      </div>
-      <div id="login-panel-id">
-        <p class="modal-sub">Paste your Student ID to reconnect</p>
-        <input type="text" id="login-id" class="field" placeholder="Your Student ID…" />
-        <button class="btn-primary w-full" onclick="handleLogin()">Connect →</button>
-      </div>
-      <div id="login-panel-qr" class="hidden">
-        <p class="modal-sub">Point your camera at your saved QR code</p>
-        <div class="qr-reader-wrap">
-          <video id="qr-video" autoplay playsinline muted></video>
-          <div class="qr-scanner-line"></div>
-          <div class="qr-corner tl"></div>
-          <div class="qr-corner tr"></div>
-          <div class="qr-corner bl"></div>
-          <div class="qr-corner br"></div>
-        </div>
-        <p class="qr-status" id="qr-status">Initialising camera…</p>
-      </div>
+      <h2>Restore your profile</h2>
+      <p class="modal-sub">Your usual browser remembers you. On a new device, paste your saved recovery code.</p>
+      <label for="login-id">Recovery code</label>
+      <input type="text" id="login-id" class="field" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" spellcheck="false" />
+      <p id="login-error" class="error-msg hidden" role="alert"></p>
+      <button id="login-submit" class="btn-primary w-full" onclick="handleLogin()">Restore profile →</button>
     </div>
   </div>
 
@@ -341,15 +325,12 @@
   <div id="modal-save-id" class="modal hidden">
     <div class="modal-box">
       <div class="modal-icon">◈</div>
-      <h2>Save your Access Key</h2>
-      <p class="modal-sub">Scan or download this QR code — it's the only way back in. Keep it safe.</p>
-      <div class="qr-wrap">
-        <canvas id="qr-canvas" width="180" height="180"></canvas>
-      </div>
-      <div class="id-display" id="display-user-id"></div>
+      <h2>Save your recovery code</h2>
+      <p class="modal-sub">You’re signed in on this browser. Save this private code to restore your profile on another device or after logging out. We cannot recover a lost code.</p>
+      <div class="id-display" id="display-recovery-code" style="overflow-wrap:anywhere;user-select:all"></div>
       <div class="save-id-actions">
-        <button class="btn-secondary half" onclick="copyUserId()">⊕ Copy Key</button>
-        <button class="btn-secondary half" onclick="downloadQR()">↓ Save QR</button>
+        <button class="btn-secondary half" onclick="copyRecoveryCode(this)">Copy code</button>
+        <button class="btn-secondary half" onclick="downloadRecoveryCode()">Download code</button>
       </div>
       <button class="btn-primary w-full" onclick="hideModal('modal-save-id'); showPage('page-gallery')">Confirmed — Enter the Network →</button>
     </div>
@@ -360,13 +341,12 @@
     <div class="modal-box">
       <div class="modal-icon">◈</div>
       <h2>Log out?</h2>
-      <p class="modal-sub">Your Access Key will be cleared from this device. Make sure you have it saved before logging out.</p>
+      <p class="modal-sub">You’ll need your saved recovery code to sign in again. Make sure you have it before logging out.</p>
       <button class="btn-danger w-full" onclick="confirmLogout()">Yes, log out</button>
       <button class="btn-ghost-dark w-full" onclick="hideModal('modal-logout')">Cancel</button>
     </div>
   </div>
 
-  <script src="/js/qrcode.min.js"></script>
   <script src="/js/avatars.js"></script>
   <script src="/js/app.js"></script>
   <script>

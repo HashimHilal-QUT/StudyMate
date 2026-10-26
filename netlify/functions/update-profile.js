@@ -1,3 +1,4 @@
+const auth = require('./lib/auth');
 // netlify/functions/update-profile.js
 // Updates an existing student profile — name is immutable, everything else is editable
 
@@ -27,11 +28,11 @@ exports.handler = async (event) => {
   if (event.httpMethod !== "POST") return { statusCode: 405, headers, body: JSON.stringify({ error: "Method not allowed" }) };
 
   try {
-    const { userId, avatar, subjects, studyStyle, availability, university, bio, contact } = JSON.parse(event.body);
-
-    if (!userId) return { statusCode: 400, headers, body: JSON.stringify({ error: "userId is required" }) };
+    const { avatar, subjects, studyStyle, availability, university, bio, contact } = JSON.parse(event.body);
 
     const client = getTableClient();
+    const userId = await auth.authenticate(event, client);
+    if (!userId) return auth.response(401, { error: "Please restore your profile before editing." });
 
     // Fetch existing to preserve firstName (name is locked)
     let existing;

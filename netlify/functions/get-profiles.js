@@ -1,5 +1,6 @@
+const auth = require('./lib/auth');
 // netlify/functions/get-profiles.js
-// Returns student profiles for swiping (excluding the current user and already-swiped profiles)
+// Returns student profiles to authenticated students, excluding their own profile
 
 const { TableClient, AzureNamedKeyCredential } = require("@azure/data-tables");
 
@@ -21,6 +22,7 @@ exports.handler = async (event, context) => {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type",
     "Content-Type": "application/json",
+    "Cache-Control": "no-store",
   };
 
   if (event.httpMethod === "OPTIONS") {
@@ -28,10 +30,10 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const { userId } = event.queryStringParameters || {};
+    const userId = await auth.authenticate(event, getTableClient(TABLE_NAME));
+    if (!userId) return auth.response(401, { error: "Please sign in to browse students." });
 
     const profilesClient = getTableClient(TABLE_NAME);
-    const swipesClient = getTableClient(TABLE_NAME);
 
     // Fetch all student profiles
     const profiles = [];
@@ -53,22 +55,7 @@ exports.handler = async (event, context) => {
       });
     }
 
-    // If userId provided, filter out self and already-swiped (unless includeSelf=true)
-    let filteredProfiles = profiles;
-    const { includeSelf } = event.queryStringParameters || {};
-    if (userId && includeSelf !== "true") {
-      const swipedIds = new Set();
-      const swipesIter = swipesClient.listEntities({
-        queryOptions: { filter: `PartitionKey eq 'swipe' and RowKey ge '${userId}_' and RowKey lt '${userId}_~'` },
-      });
-      for await (const s of swipesIter) {
-        const targetId = s.rowKey.replace(`${userId}_`, "");
-        swipedIds.add(targetId);
-      }
-      filteredProfiles = profiles.filter(
-        (p) => p.id !== userId && !swipedIds.has(p.id)
-      );
-    }
+    const filteredProfiles = profiles.filter(p => p.id !== userId);
 
     // Shuffle for variety
     filteredProfiles.sort(() => Math.random() - 0.5);

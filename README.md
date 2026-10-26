@@ -93,8 +93,8 @@ Update your avatar, bio, subjects and availability any time. Your study life cha
 
 My Study Friends was designed from day one with a simple rule: **collect only what's necessary, expose only what you choose.**
 
-- No passwords — you log in with a private access key that only you hold
-- No tracking or analytics cookies
+- No passwords — your browser remembers you, with a private recovery code for other devices
+- No tracking or analytics cookies; a secure session cookie remembers your sign-in
 - No ads — ever
 - Contact details are optional and fully controlled by you
 - The platform never sells or shares your data
@@ -118,9 +118,9 @@ My Study Friends was designed from day one with a simple rule: **collect only wh
 
 **New student?** → [mystudyfriends.netlify.app](https://mystudyfriends.netlify.app) → **Initialize Profile**
 
-**Returning?** → Scan your saved QR code, or click **Access Existing** and paste your Access Key
+**Returning?** → Your usual browser remembers you for up to 90 days. On another device, click **Access Existing** and paste your saved recovery code.
 
-**Lost your key?** → Register again — it only takes 2 minutes
+**Lost your code and signed out?** → Create a new profile. There is no email recovery.
 
 ---
 
@@ -135,3 +135,14 @@ My Study Friends was designed from day one with a simple rule: **collect only wh
 *My Study Friends — Neural-matched. Human-connected.*
 
 </div>
+
+
+## Authentication and deployment
+
+Existing Azure Table Storage and Netlify environment variables are used; no email service or new database is required. Public profile UUIDs remain internal identifiers, never login credentials. New profiles receive a cryptographically random 96-bit recovery code, shown once with copy/download options. Only its SHA-256 hash is stored in the `recovery` partition. Treat the downloaded code as private.
+
+Browser sessions use random tokens in Secure, HttpOnly, SameSite=Strict cookies with a 90-day lifetime. Hashed tokens and expiry timestamps are stored in the `session` partition. Logout deletes the server session. Expired session records are rejected; automatic storage cleanup is not implemented. Profile listing, editing, and the legacy swipe/match endpoints require a valid session. Profile contacts remain visible to signed-in students.
+
+Deploy the frontend and all functions together.
+
+Run `npm install` and `npm test` for authentication checks. For local use, run through Netlify Dev on localhost so functions and the frontend share an origin. Deploy through the site's existing Netlify workflow; this change adds no environment variables. Never put Azure keys in frontend files.

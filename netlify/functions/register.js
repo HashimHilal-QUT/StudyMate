@@ -1,3 +1,4 @@
+const auth = require('./lib/auth');
 // netlify/functions/register.js
 // Creates a new student profile in Azure Table Storage
 
@@ -79,12 +80,25 @@ exports.handler = async (event, context) => {
       createdAt: new Date().toISOString(),
     };
 
+    const recoveryCode = auth.newRecoveryCode();
     await client.createEntity(entity);
+    const recoveryHash = auth.hash(auth.normalizeCode(recoveryCode));
+    let sessionCookie;
+    try {
+      await client.createEntity({ partitionKey: "recovery", rowKey: recoveryHash, userId });
+      sessionCookie = await auth.issueSession(client, userId);
+    } catch (err) {
+      await Promise.allSettled([
+        client.deleteEntity("profile", userId),
+        client.deleteEntity("recovery", recoveryHash),
+      ]);
+      throw err;
+    }
 
     return {
       statusCode: 201,
-      headers,
-      body: JSON.stringify({ userId, message: "Profile created successfully" }),
+      headers: { ...headers, "Cache-Control": "no-store", "Set-Cookie": sessionCookie },
+      body: JSON.stringify({ userId, recoveryCode, message: "Profile created successfully" }),
     };
   } catch (err) {
     console.error("register error:", err);
