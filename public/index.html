@@ -32,6 +32,7 @@
 
   <!-- ==================== LANDING ==================== -->
   <div id="page-landing" class="page active">
+    <button type="button" class="homepage-install" data-install-app onclick="installApp()">Install app ↓</button>
     <div class="landing-bg">
       <canvas id="grid-canvas" class="grid-canvas"></canvas>
       <div class="bg-orb orb-1"></div>
@@ -64,7 +65,6 @@
           </button>
           <button class="btn-ghost landing-demo-button" onclick="openNetworkDemo()">Try a Demo Network ↗</button>
           <button class="btn-ghost" onclick="showLoginPrompt()">Sign in</button>
-          <button class="btn-ghost" data-install-app onclick="installApp()">Install app ↓</button>
         </div>
         <div class="landing-stats">
           <div class="stat"><span class="stat-n">Your</span><span class="stat-l">Uni crew</span></div>
@@ -250,7 +250,6 @@
         <span class="gallery-count" id="gallery-count"></span>
       </div>
       <div class="network-toolbar">
-        <button class="demo-toggle install-app-button" data-install-app onclick="installApp()">Install app ↓</button>
         <div class="view-switch" role="group" aria-label="Network view">
           <button type="button" id="view-graph" aria-pressed="true" onclick="setNetworkView('graph')">◎ Connection map</button>
           <button type="button" id="view-cards" aria-pressed="false" onclick="setNetworkView('cards')">▦ Cards</button>

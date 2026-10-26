@@ -1108,7 +1108,6 @@ button:focus-visible, [role="button"]:focus-visible, select:focus-visible, .grap
 .app-update { cursor: pointer; }
 .install-instruction { font-size: 13px; color: var(--text-soft); line-height: 1.7; margin-bottom: 16px; text-align: left; }
 .install-instruction strong { color: var(--text); }
-.install-app-button { margin-left: 0; }
 @media (display-mode: standalone) {
   .app-header, .reg-header { padding-top: max(12px, env(safe-area-inset-top)); }
   .gallery-content { padding-bottom: max(60px, env(safe-area-inset-bottom)); }
@@ -1121,3 +1120,18 @@ button:focus-visible, [role="button"]:focus-visible, select:focus-visible, .grap
   #demo-join { font-size: 11px; padding: 8px; }
 }
 #page-landing .landing-bg { overflow: hidden; }
+
+.homepage-install {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  right: max(16px, env(safe-area-inset-right));
+  z-index: 3;
+  padding: 8px 12px;
+  border: 1px solid var(--border-hi);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--cyan);
+  font: 500 12px var(--font-body);
+  cursor: pointer;
+}
+.homepage-install:hover { background: var(--raised); border-color: var(--cyan); }
