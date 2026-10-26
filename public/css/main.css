@@ -1117,13 +1117,10 @@ button:focus-visible, [role="button"]:focus-visible, select:focus-visible, .grap
 /* A welcoming homepage and a handwritten note about friendship. */
 .landing-actions { flex-wrap: wrap; }
 .landing-demo-button { border: 1px solid var(--border-hi); color: var(--cyan); }
-.landing-footer { position: relative; z-index: 1; width: min(900px, 100%); margin: 0 auto; padding: 12px 28px 42px; text-align: center; flex-shrink: 0; }
-.friendship-quote { font-family: 'Dancing Script', 'Segoe Script', 'Brush Script MT', cursive; font-size: clamp(25px, 3vw, 36px); font-weight: 500; line-height: 1.55; color: #e4c6ef; text-shadow: 0 0 28px #a374e833; }
-@media (min-width: 992px) {
-  #page-landing .landing-split-container { min-height: calc(100dvh - 150px); }
-}
+.landing-footer { width: 100%; max-width: 390px; margin-top: 20px; text-align: inherit; flex-shrink: 0; }
+.friendship-quote { font-family: 'Dancing Script', 'Segoe Script', 'Brush Script MT', cursive; font-size: clamp(19px, 1.5vw, 22px); font-weight: 500; line-height: 1.5; color: #e4c6ef; text-shadow: 0 0 28px #a374e833; }
 @media (max-width: 576px) {
-  .landing-footer { padding: 0 28px 36px; }
+  .landing-footer { max-width: 300px; margin-top: 18px; }
   #demo-join { font-size: 11px; padding: 8px; }
 }
 #page-landing .landing-bg { overflow: hidden; }

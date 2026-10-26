@@ -1,5 +1,5 @@
 /* Cache only the public app shell. Never cache profiles, credentials, APIs or photos. */
-const CACHE = 'msf-shell-v2';
+const CACHE = 'msf-shell-v3';
 const SHELL = ['/', '/index.html', '/css/main.css', '/js/universities.js', '/js/network-model.js',
   '/js/network-view.js', '/js/avatars.js', '/js/account.js', '/js/photos.js', '/js/app.js', '/js/pwa.js',
   '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/icon-180.png'];
