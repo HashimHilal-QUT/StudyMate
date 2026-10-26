@@ -1114,13 +1114,10 @@ button:focus-visible, [role="button"]:focus-visible, select:focus-visible, .grap
   .gallery-content { padding-bottom: max(60px, env(safe-area-inset-bottom)); }
 }
 
-/* A welcoming homepage and a handwritten note about friendship. */
+/* Homepage actions. */
 .landing-actions { flex-wrap: wrap; }
 .landing-demo-button { border: 1px solid var(--border-hi); color: var(--cyan); }
-.landing-footer { width: 100%; max-width: 390px; margin-top: 20px; text-align: inherit; flex-shrink: 0; }
-.friendship-quote { font-family: 'Dancing Script', 'Segoe Script', 'Brush Script MT', cursive; font-size: clamp(19px, 1.5vw, 22px); font-weight: 500; line-height: 1.5; color: #e4c6ef; text-shadow: 0 0 28px #a374e833; }
 @media (max-width: 576px) {
-  .landing-footer { max-width: 300px; margin-top: 18px; }
   #demo-join { font-size: 11px; padding: 8px; }
 }
 #page-landing .landing-bg { overflow: hidden; }
