@@ -28,7 +28,7 @@ exports.handler = async event => {
     const p = await db.getEntity('profile', userId);
     return auth.response(200, { userId, profile: { id: userId, firstName: p.firstName, avatar: p.avatar,
       subjects: JSON.parse(p.subjects || '[]'), studyStyle: p.studyStyle, availability: p.availability,
-      university: p.university, bio: p.bio, contact: JSON.parse(p.contact || '{}') } });
+      university: p.university, city: p.city || "", bio: p.bio, contact: JSON.parse(p.contact || '{}') } });
   } catch (err) {
     console.error('session error:', err);
     return auth.response(500, { error: 'Could not access your profile. Please try again.' });

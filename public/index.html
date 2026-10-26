@@ -47,10 +47,10 @@
             <line x1="30" y1="20" x2="38" y2="20" stroke="currentColor" stroke-width="1.5"/>
           </svg>
         </div>
-        <div class="ai-badge">◆ AI-POWERED MATCHING</div>
+        <div class="ai-badge">◆ FIND YOUR STUDY ORBIT</div>
         <h1 class="landing-title">My Study<br/><span class="accent">Friends</span></h1>
-        <p class="landing-sub">Neural-matched. Human-connected.</p>
-        <p class="landing-desc">Our AI finds study partners who align with your subjects, style, and schedule — then gets out of the way.</p>
+        <p class="landing-sub">Shared interests. Real connections.</p>
+        <p class="landing-desc">Explore your city, discover your university crew, and connect through the subjects and study habits you share.</p>
         <div class="landing-actions">
           <button class="btn-primary" onclick="showPage('page-register')">
             <span class="btn-icon">⬡</span> Initialize Profile
@@ -58,9 +58,9 @@
           <button class="btn-ghost" onclick="showLoginPrompt()">Access Existing</button>
         </div>
         <div class="landing-stats">
-          <div class="stat"><span class="stat-n">AI</span><span class="stat-l">Powered</span></div>
+          <div class="stat"><span class="stat-n">Your</span><span class="stat-l">Study orbit</span></div>
           <div class="stat-divider"></div>
-          <div class="stat"><span class="stat-n">Zero</span><span class="stat-l">PII Exposed</span></div>
+          <div class="stat"><span class="stat-n">Zero</span><span class="stat-l">Passwords</span></div>
           <div class="stat-divider"></div>
           <div class="stat"><span class="stat-n">Real</span><span class="stat-l">Connections</span></div>
         </div>
@@ -103,7 +103,7 @@
     </div>
     <div class="page-inner narrow">
       <h2 class="page-title">Build your profile</h2>
-      <p class="page-sub">Only your first name and avatar are visible to others. All other details stay private.</p>
+      <p class="page-sub">Share your study world. Your city, university, subjects and any contact handles you add are visible to signed-in students.</p>
 
       <div class="form-group">
         <label>First name only <span class="required">*</span></label>
@@ -114,8 +114,15 @@
         <div class="avatar-grid" id="avatar-grid"></div>
       </div>
       <div class="form-group">
-        <label>University / Institution</label>
-        <input type="text" id="reg-university" class="field" placeholder="e.g. QUT, UQ, Griffith…" maxlength="60" />
+        <label for="reg-university-select">University / Institution</label>
+        <select id="reg-university-select" class="field"><option value="">Choose your university (optional)</option></select>
+        <input type="text" id="reg-university" class="field manual-university" aria-label="Your university, institution or team" placeholder="Your university, institution or team" maxlength="100" hidden />
+        <p class="field-note">Not in the list? Choose the last option to enter your own.</p>
+      </div>
+      <div class="form-group">
+        <label for="reg-city">Which city do you study in?</label>
+        <input type="text" id="reg-city" class="field" list="city-options" placeholder="Choose or type a city (optional)" maxlength="60" autocomplete="address-level2" />
+        <p class="field-note">Just your city — no street address. You can leave this blank.</p>
       </div>
       <div class="form-group">
         <label>Subjects you study</label>
@@ -181,7 +188,7 @@
     <header class="app-header">
       <div class="header-logo">MSF<span class="header-dot">◆</span></div>
       <div class="header-search">
-        <input type="text" id="search-input" class="search-field" placeholder="Search by name, subject, uni…" oninput="filterGallery()" />
+        <input type="text" id="search-input" class="search-field" placeholder="Search name, subject, city, uni…" oninput="filterGallery()" />
       </div>
       <div class="header-actions">
         <button class="nav-btn" onclick="showPage('page-edit')" title="Edit Profile">
@@ -204,6 +211,20 @@
         <h2 class="section-title">Study Network</h2>
         <span class="gallery-count" id="gallery-count"></span>
       </div>
+      <div class="network-toolbar">
+        <div class="view-switch" role="group" aria-label="Network view">
+          <button type="button" id="view-graph" aria-pressed="true" onclick="setNetworkView('graph')">◎ Connection map</button>
+          <button type="button" id="view-cards" aria-pressed="false" onclick="setNetworkView('cards')">▦ Cards</button>
+        </div>
+        <label class="cluster-control" for="cluster-by">Group by
+          <select id="cluster-by" onchange="renderGallery()"><option value="city">City</option><option value="university">University</option></select>
+        </label>
+        <button type="button" class="demo-toggle" id="demo-toggle" aria-pressed="false" onclick="toggleNetworkDemo()">Try a demo network</button>
+      </div>
+      <p class="network-explainer" id="network-explainer">Discover your study orbit. Drag cards, tap a student, or explore what a group shares.</p>
+      <p id="network-demo-notice" class="demo-notice hidden">Demo preview · Fictional students, not real profiles. Nothing is saved.</p>
+      <div id="network-summary" class="network-summary" aria-live="polite"></div>
+      <div id="network-groups" class="network-groups"></div>
       <div id="gallery-loading" class="swipe-loading">
         <div class="spinner"></div>
         <p>Scanning study network…</p>
@@ -238,8 +259,15 @@
         <div class="avatar-grid" id="edit-avatar-grid"></div>
       </div>
       <div class="form-group">
-        <label>University / Institution</label>
-        <input type="text" id="edit-university" class="field" placeholder="e.g. QUT, UQ, Griffith…" maxlength="60" />
+        <label for="edit-university-select">University / Institution</label>
+        <select id="edit-university-select" class="field"><option value="">Choose your university (optional)</option></select>
+        <input type="text" id="edit-university" class="field manual-university" aria-label="Your university, institution or team" placeholder="Your university, institution or team" maxlength="100" hidden />
+        <p class="field-note">Not in the list? Choose the last option to enter your own.</p>
+      </div>
+      <div class="form-group">
+        <label for="edit-city">Which city do you study in?</label>
+        <input type="text" id="edit-city" class="field" list="city-options" placeholder="Choose or type a city (optional)" maxlength="60" autocomplete="address-level2" />
+        <p class="field-note">Just your city — no street address. You can leave this blank.</p>
       </div>
       <div class="form-group">
         <label>Subjects you study</label>
@@ -347,6 +375,10 @@
     </div>
   </div>
 
+  <datalist id="city-options"></datalist>
+  <script src="/js/universities.js"></script>
+  <script src="/js/network-model.js"></script>
+  <script src="/js/network-view.js"></script>
   <script src="/js/avatars.js"></script>
   <script src="/js/app.js"></script>
   <script>

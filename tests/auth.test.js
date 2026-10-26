@@ -75,11 +75,13 @@ function loadFunction(name, db) {
 test('registration returns a private code, listing excludes it, and edits use session ownership', async () => {
   const db = database();
   const register = loadFunction('register', db);
-  const created = await register({ httpMethod: 'POST', body: JSON.stringify({ firstName: 'Alice', avatar: 'avatar_owl' }) });
+  const created = await register({ httpMethod: 'POST', body: JSON.stringify({ firstName: 'Alice', avatar: 'avatar_owl', city: ' Brisbane ', university: 'Queensland University of Technology' }) });
   assert.equal(created.statusCode, 201);
   const { userId, recoveryCode } = JSON.parse(created.body);
   assert.ok(auth.normalizeCode(recoveryCode));
+  assert.equal((await db.getEntity('profile', userId)).city, 'Brisbane');
   assert.ok(!JSON.stringify([...db.rows.values()]).includes(recoveryCode));
+  assert.equal((await register({ httpMethod: 'POST', body: JSON.stringify({ firstName: 'Alice', avatar: 'avatar_owl', city: {} }) })).statusCode, 400);
   const headers = { cookie: created.headers['Set-Cookie'].split(';')[0] };
   const list = loadFunction('get-profiles', db);
   assert.equal((await list({ httpMethod: 'GET', queryStringParameters: { userId } })).statusCode, 401);
@@ -90,9 +92,11 @@ test('registration returns a private code, listing excludes it, and edits use se
   assert.ok(!listed.body.includes(recoveryCode));
   const update = loadFunction('update-profile', db);
   assert.equal((await update({ httpMethod: 'POST', body: JSON.stringify({ userId }) })).statusCode, 401);
-  const edited = await update({ httpMethod: 'POST', headers, body: JSON.stringify({ userId: 'bob', bio: 'My new bio' }) });
+  const edited = await update({ httpMethod: 'POST', headers, body: JSON.stringify({ userId: 'bob', bio: 'My new bio', city: ' Melbourne ', university: 'My custom university team' }) });
   assert.equal(edited.statusCode, 200);
   assert.equal((await db.getEntity('profile', userId)).bio, 'My new bio');
+  assert.equal((await db.getEntity('profile', userId)).city, 'Melbourne');
+  assert.equal((await db.getEntity('profile', userId)).university, 'My custom university team');
   assert.equal((await db.getEntity('profile', 'bob')).bio, undefined);
   for (const name of ['swipe', 'get-matches']) {
     const handler = loadFunction(name, db);

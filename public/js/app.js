@@ -13,6 +13,7 @@ const STATE = {
 // PAGE NAVIGATION
 // ========================
 function showPage(pageId) {
+  if (pageId !== "page-gallery") stopNetworkAnimation();
   document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
   const page = document.getElementById(pageId);
   if (page) page.classList.add("active");
@@ -27,6 +28,7 @@ function showLoginPrompt() { showModal("modal-login"); }
 // BOOT
 // ========================
 document.addEventListener("DOMContentLoaded", async () => {
+  initUniversityPickers();
   initAvatarGrid();
   initPillSelects();
   initBioCounter();
@@ -81,6 +83,9 @@ async function confirmLogout() {
     STATE.myAvatar = null;
     STATE.profiles = [];
     STATE.filtered = [];
+    networkDemo = false;
+    stopNetworkAnimation();
+    document.getElementById("network-groups").replaceChildren();
     document.getElementById("gallery-grid").innerHTML = "";
     document.getElementById("modal-contact").textContent = "";
     document.getElementById("display-recovery-code").textContent = "";
@@ -158,7 +163,8 @@ function initBioCounter() {
 async function handleRegister() {
   const firstName     = document.getElementById("reg-firstname").value.trim();
   const selectedAvatar = document.querySelector("#avatar-grid .avatar-option.selected");
-  const university    = document.getElementById("reg-university").value.trim();
+  const university    = selectedUniversity("reg");
+  const city = document.getElementById("reg-city").value.trim();
   const studyStyle    = document.querySelector("#study-style-select .pill.selected")?.dataset.value || "";
   const availability  = document.querySelector("#availability-select .pill.selected")?.dataset.value || "";
   const bio           = document.getElementById("reg-bio").value.trim();
@@ -179,7 +185,7 @@ async function handleRegister() {
     const res = await fetch("/.netlify/functions/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ firstName, avatar: selectedAvatar.dataset.key, subjects, studyStyle, availability, university, bio, contact: { instagram, linkedin, facebook, discord } }),
+      body: JSON.stringify({ firstName, avatar: selectedAvatar.dataset.key, subjects, studyStyle, availability, university, city, bio, contact: { instagram, linkedin, facebook, discord } }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Registration failed");
@@ -218,6 +224,8 @@ async function loadGallery() {
   const empty   = document.getElementById("gallery-empty");
   const count   = document.getElementById("gallery-count");
 
+  stopNetworkAnimation();
+  document.getElementById("network-groups").replaceChildren();
   grid.innerHTML = "";
   loading.classList.remove("hidden");
   empty.classList.add("hidden");
@@ -238,39 +246,24 @@ async function loadGallery() {
 
   loading.classList.add("hidden");
 
-  if (STATE.profiles.length === 0) {
-    empty.classList.remove("hidden");
-    return;
-  }
-
-  renderGallery();
+  filterGallery();
 }
 
 function renderGallery() {
-  const grid  = document.getElementById("gallery-grid");
-  const empty = document.getElementById("gallery-empty");
-  const count = document.getElementById("gallery-count");
-
-  grid.innerHTML = "";
-
-  if (STATE.filtered.length === 0) {
-    empty.classList.remove("hidden");
-    count.textContent = "0 nodes";
-    return;
-  }
-
-  empty.classList.add("hidden");
-  count.textContent = `${STATE.filtered.length} node${STATE.filtered.length !== 1 ? "s" : ""} online`;
-
-  STATE.filtered.forEach(profile => {
-    grid.appendChild(buildBadge(profile));
-  });
+  const grid = document.getElementById("gallery-grid");
+  grid.replaceChildren();
+  grid.classList.add("hidden");
+  renderNetwork(STATE.filtered);
 }
 
 function buildBadge(profile) {
   const card = document.createElement("div");
   card.className = "student-badge";
   card.onclick = () => openProfile(profile);
+  card.tabIndex = 0;
+  card.setAttribute("role", "button");
+  card.setAttribute("aria-label", `View ${profile.firstName}'s profile`);
+  card.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openProfile(profile); } };
 
   const subjectTags = (profile.subjects || []).slice(0, 3)
     .map(s => `<span class="badge-subject">${escHtml(s)}</span>`).join("");
@@ -278,7 +271,8 @@ function buildBadge(profile) {
   card.innerHTML = `
     <span class="badge-avatar">${getAvatarEmoji(profile.avatar)}</span>
     <div class="badge-name">${escHtml(profile.firstName)}</div>
-    <div class="badge-uni">${escHtml(profile.university || "—")}</div>
+    <div class="badge-uni">${escHtml(profile.university || "University not shared")}</div>
+    ${profile.city ? `<div class="badge-city">⌖ ${escHtml(profile.city)}</div>` : ""}
     ${subjectTags ? `<div class="badge-subjects">${subjectTags}</div>` : ""}
     ${profile.bio ? `<div class="badge-bio">${escHtml(profile.bio)}</div>` : ""}
     <div class="badge-footer">
@@ -294,13 +288,15 @@ function buildBadge(profile) {
 // ========================
 function filterGallery() {
   const q = document.getElementById("search-input").value.trim().toLowerCase();
+  const source = networkDemo ? NETWORK_DEMO : STATE.profiles;
   if (!q) {
-    STATE.filtered = [...STATE.profiles];
+    STATE.filtered = [...source];
   } else {
-    STATE.filtered = STATE.profiles.filter(p => {
+    STATE.filtered = source.filter(p => {
       const haystack = [
         p.firstName,
         p.university,
+        p.city,
         p.bio,
         p.studyStyle,
         p.availability,
@@ -318,7 +314,7 @@ function filterGallery() {
 function openProfile(profile) {
   document.getElementById("modal-avatar").textContent = getAvatarEmoji(profile.avatar);
   document.getElementById("modal-name").textContent   = profile.firstName;
-  document.getElementById("modal-uni").textContent    = profile.university || "";
+  document.getElementById("modal-uni").textContent    = [profile.university, profile.city].filter(Boolean).join(" · ");
 
   // Tags
   const tagsEl = document.getElementById("modal-tags");
@@ -436,7 +432,8 @@ function loadEditProfile() {
     initEditAvatarGrid(profile.avatar);
 
     // University
-    document.getElementById("edit-university").value = profile.university || "";
+    setUniversity("edit", profile.university || "");
+    document.getElementById("edit-city").value = profile.city || "";
 
     // Subjects
     editSubjects.length = 0;
@@ -538,7 +535,8 @@ async function handleEditProfile() {
   if (!STATE.userId) return;
 
   const selectedAvatar = document.querySelector("#edit-avatar-grid .avatar-option.selected");
-  const university     = document.getElementById("edit-university").value.trim();
+  const university     = selectedUniversity("edit");
+  const city = document.getElementById("edit-city").value.trim();
   const studyStyle     = document.querySelector("#edit-study-style-select .pill.selected")?.dataset.value || "";
   const availability   = document.querySelector("#edit-availability-select .pill.selected")?.dataset.value || "";
   const bio            = document.getElementById("edit-bio").value.trim();
@@ -573,6 +571,7 @@ async function handleEditProfile() {
         studyStyle,
         availability,
         university,
+        city,
         bio,
         contact: { instagram, linkedin, facebook, discord },
       }),

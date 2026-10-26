@@ -24,7 +24,7 @@ Ever crammed for an exam alone at 2am wishing you had someone to quiz you? Ever 
 
 **My Study Friends** fixes that.
 
-It's a free, AI-powered platform that connects you with students who match your subjects, your study style, and your schedule. Browse real student profiles, read their bios, and reach out directly through Instagram, LinkedIn or Discord — all without ever sharing your personal details publicly.
+It's a free platform that connects you with students who match your subjects, your study style, and your schedule. Browse real student profiles, read their bios, and reach out directly through Instagram, LinkedIn or Discord — with optional profile details you choose to share with signed-in students.
 
 Think of it as a **study buddy finder built for uni students**, by students.
 
@@ -43,7 +43,7 @@ No swiping through one card at a time. Browse the full student network in a clea
 <td width="50%">
 
 ### 🔒 Your privacy, protected
-Only your first name and a fun emoji avatar are ever shown publicly. Contact details are yours to share — or not. Zero email addresses, zero student IDs exposed.
+Choose what you share: city, university, subjects, bio and social handles are optional and visible to signed-in students. No email address or student ID is required.
 
 </td>
 </tr>
@@ -132,7 +132,7 @@ My Study Friends was designed from day one with a simple rule: **collect only wh
 
 ---
 
-*My Study Friends — Neural-matched. Human-connected.*
+*My Study Friends — Shared interests. Real connections.*
 
 </div>
 
@@ -146,3 +146,14 @@ Browser sessions use random tokens in Secure, HttpOnly, SameSite=Strict cookies 
 Deploy the frontend and all functions together.
 
 Run `npm install` and `npm test` for authentication checks. For local use, run through Netlify Dev on localhost so functions and the frontend share an origin. Deploy through the site's existing Netlify workflow; this change adds no environment variables. Never put Azure keys in frontend files.
+
+
+## Universities, cities and connection maps
+
+Registration and profile editing offer a dropdown of 42 Australian universities from [Study Australia](https://www.studyaustralia.gov.au/en/plan-your-studies/list-of-australian-universities), retrieved 26 October 2026. Choose the last option to enter an institution or university team manually. The city field suggests common cities and accepts custom entries. Both fields are optional, visible to signed-in students, and stored on the existing Azure profile entity; no database migration is needed.
+
+The Study Network opens an interactive connection map, with an alternative grouped cards view. Switch between city and university grouping; search applies to both views, including city. Drag a student card or open it with a click, Enter or Space. Shared subjects create violet links. Callouts count shared subjects, study styles and availability across distinct profiles; click one to highlight its members. Missing locations form an explicit “not shared” group.
+
+This is an explainable JavaScript simulation, not an external AI model. Matching ignores capitalization and repeated spaces; it does not infer interests from bios. No profile data goes to an AI service. Map previews show at most 60 students and 12 per group to limit rendering work; cards show every matching student. Reduced-motion preferences disable the spring animation.
+
+“Try a demo network” previews clearly labelled fictional profiles in memory only. It never creates database records or mixes demo students with real students. University data lives in `public/js/universities.js`; clustering and rendering live in `public/js/network-model.js` and `public/js/network-view.js`.

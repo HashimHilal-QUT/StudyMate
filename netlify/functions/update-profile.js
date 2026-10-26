@@ -28,7 +28,11 @@ exports.handler = async (event) => {
   if (event.httpMethod !== "POST") return { statusCode: 405, headers, body: JSON.stringify({ error: "Method not allowed" }) };
 
   try {
-    const { avatar, subjects, studyStyle, availability, university, bio, contact } = JSON.parse(event.body);
+    const { avatar, subjects, studyStyle, availability, university, city, bio, contact } = JSON.parse(event.body);
+
+    if ((city != null && typeof city !== "string") || (university != null && typeof university !== "string")) {
+      return auth.response(400, { error: "City and university must be text." });
+    }
 
     const client = getTableClient();
     const userId = await auth.authenticate(event, client);
@@ -57,7 +61,8 @@ exports.handler = async (event) => {
       subjects:      JSON.stringify(subjects || []),
       studyStyle:    studyStyle || "",
       availability:  availability || "",
-      university:    (university || "").substring(0, 60),
+      university:    (university || "").trim().substring(0, 100),
+      city:          (city || "").trim().substring(0, 60),
       bio:           (bio || "").substring(0, 200),
       contact:       JSON.stringify(safeContact),
       createdAt:     existing.createdAt,

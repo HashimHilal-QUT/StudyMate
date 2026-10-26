@@ -50,6 +50,7 @@ exports.handler = async (event, context) => {
         studyStyle: entity.studyStyle,
         availability: entity.availability,
         university: entity.university,
+        city: entity.city || "",
         bio: entity.bio,
         contact: entity.contact ? JSON.parse(entity.contact) : {},
       });

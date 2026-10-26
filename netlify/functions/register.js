@@ -35,7 +35,11 @@ exports.handler = async (event, context) => {
 
   try {
     const body = JSON.parse(event.body);
-    const { firstName, avatar, subjects, studyStyle, availability, university, bio, contact } = body;
+    const { firstName, avatar, subjects, studyStyle, availability, university, city, bio, contact } = body;
+
+    if ((city != null && typeof city !== "string") || (university != null && typeof university !== "string")) {
+      return auth.response(400, { error: "City and university must be text." });
+    }
 
     // Validate required fields
     if (!firstName || !avatar) {
@@ -74,7 +78,8 @@ exports.handler = async (event, context) => {
       subjects: JSON.stringify(subjects || []),
       studyStyle: studyStyle || "",
       availability: availability || "",
-      university: university || "",
+      university: (university || "").trim().substring(0, 100),
+      city: (city || "").trim().substring(0, 60),
       bio: (bio || "").substring(0, 200),
       contact: JSON.stringify(safeContact),
       createdAt: new Date().toISOString(),
