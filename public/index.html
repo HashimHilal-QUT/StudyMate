@@ -3,7 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Study Friends — AI-Powered Study Matching</title>
+  <meta name="theme-color" content="#080d1a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Study Friends" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/icons/icon-180.png" />
+  <link rel="icon" type="image/png" href="/icons/icon-192.png" />
+  <title>My Study Friends — Find your study crew</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Orbitron:wght@400;600;700;900&display=swap" rel="stylesheet" />
@@ -55,12 +62,13 @@
           <button class="btn-primary" onclick="showPage('page-register')">
             <span class="btn-icon">⬡</span> Initialize Profile
           </button>
-          <button class="btn-ghost" onclick="showLoginPrompt()">Access Existing</button>
+          <button class="btn-ghost" onclick="showLoginPrompt()">Sign in</button>
+          <button class="btn-ghost" data-install-app onclick="installApp()">Install app ↓</button>
         </div>
         <div class="landing-stats">
           <div class="stat"><span class="stat-n">Your</span><span class="stat-l">Study orbit</span></div>
           <div class="stat-divider"></div>
-          <div class="stat"><span class="stat-n">Zero</span><span class="stat-l">Passwords</span></div>
+          <div class="stat"><span class="stat-n">Zero</span><span class="stat-l">Email messages</span></div>
           <div class="stat-divider"></div>
           <div class="stat"><span class="stat-n">Real</span><span class="stat-l">Connections</span></div>
         </div>
@@ -86,12 +94,17 @@
     <div class="modal-box">
       <button class="modal-close" onclick="hideModal('modal-login')">✕</button>
       <div class="modal-icon">◈</div>
-      <h2>Restore your profile</h2>
-      <p class="modal-sub">Your usual browser remembers you. On a new device, paste your saved recovery code.</p>
-      <label for="login-id">Recovery code</label>
-      <input type="text" id="login-id" class="field" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" spellcheck="false" />
-      <p id="login-error" class="error-msg hidden" role="alert"></p>
-      <button id="login-submit" class="btn-primary w-full" onclick="handleLogin()">Restore profile →</button>
+      <h2>Welcome back</h2>
+      <p class="modal-sub">Your usual device remembers you. Sign in here with your university email and app PIN.</p>
+      <form onsubmit="event.preventDefault(); handleLogin()">
+        <label for="login-email">University email</label>
+        <input type="email" id="login-email" class="field" placeholder="you@university.edu.au" autocomplete="username" required />
+        <label for="login-pin">Four-digit app PIN</label>
+        <input type="password" id="login-pin" class="field pin-field" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="current-password" required />
+        <p id="login-error" class="error-msg hidden" role="alert"></p>
+        <button id="login-submit" class="btn-primary w-full" type="submit">Sign in →</button>
+      </form>
+      <button class="btn-ghost w-full" onclick="showModal('modal-reset')">Forgot PIN? Use your passkey</button>
     </div>
   </div>
 
@@ -106,12 +119,35 @@
       <p class="page-sub">Share your study world. Your city, university, subjects and any contact handles you add are visible to signed-in students.</p>
 
       <div class="form-group">
+        <label for="reg-email">University email <span class="required">*</span></label>
+        <input type="email" id="reg-email" class="field" placeholder="you@university.edu.au" autocomplete="username" maxlength="254" required />
+        <p class="field-note">A .edu.au address is required. We check the format only; we don’t send verification emails or display your address.</p>
+      </div>
+      <div class="form-group">
+        <label for="reg-pin">Choose a four-digit app PIN <span class="required">*</span></label>
+        <input type="password" id="reg-pin" class="field pin-field" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" required />
+      </div>
+      <div class="form-group">
+        <label for="reg-pin-confirm">Confirm app PIN <span class="required">*</span></label>
+        <input type="password" id="reg-pin-confirm" class="field pin-field" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" required />
+        <p class="field-note">Next you’ll save a passkey using your device’s unlock method. It’s required so you can reset a forgotten PIN without email. Keep access to your passkey or its synced password manager.</p>
+      </div>
+      <div class="form-group">
         <label>First name only <span class="required">*</span></label>
         <input type="text" id="reg-firstname" class="field" placeholder="e.g. Alex" maxlength="30" />
       </div>
       <div class="form-group">
-        <label>Choose your avatar <span class="required">*</span></label>
+        <label>Photo or emoji avatar</label>
+        <div class="photo-picker">
+          <div id="reg-photo-preview" class="photo-preview">🦉</div>
+          <div>
+            <label for="reg-photo" class="photo-upload-label">Choose a photo</label>
+            <input type="file" id="reg-photo" accept="image/*" class="photo-file" />
+            <p id="reg-photo-status" class="field-note" role="status">Pick from your gallery, or choose an emoji below.</p>
+          </div>
+        </div>
         <div class="avatar-grid" id="avatar-grid"></div>
+        <p class="field-note">Selecting an emoji replaces your photo. Photos are visible to signed-in students.</p>
       </div>
       <div class="form-group">
         <label for="reg-university-select">University / Institution</label>
@@ -178,7 +214,7 @@
       </div>
       <div id="reg-error" class="error-msg hidden"></div>
       <button class="btn-primary w-full" id="reg-submit" onclick="handleRegister()">
-        <span>Initialise &amp; Enter the Network →</span>
+        <span>Create profile &amp; save passkey →</span>
       </button>
     </div>
   </div>
@@ -212,6 +248,7 @@
         <span class="gallery-count" id="gallery-count"></span>
       </div>
       <div class="network-toolbar">
+        <button class="demo-toggle install-app-button" data-install-app onclick="installApp()">Install app ↓</button>
         <div class="view-switch" role="group" aria-label="Network view">
           <button type="button" id="view-graph" aria-pressed="true" onclick="setNetworkView('graph')">◎ Connection map</button>
           <button type="button" id="view-cards" aria-pressed="false" onclick="setNetworkView('cards')">▦ Cards</button>
@@ -248,6 +285,8 @@
       <h2 class="page-title">Update your profile</h2>
       <p class="page-sub">Your first name cannot be changed. All other fields are editable.</p>
 
+      <button class="btn-secondary w-full" onclick="showModal('modal-reset')">Change app PIN with passkey</button>
+
       <!-- Name locked display -->
       <div class="form-group">
         <label>First name <span class="locked-badge">LOCKED</span></label>
@@ -255,8 +294,17 @@
       </div>
 
       <div class="form-group">
-        <label>Choose your avatar <span class="required">*</span></label>
+        <label>Photo or emoji avatar</label>
+        <div class="photo-picker">
+          <div id="edit-photo-preview" class="photo-preview">🦉</div>
+          <div>
+            <label for="edit-photo" class="photo-upload-label">Choose a photo</label>
+            <input type="file" id="edit-photo" accept="image/*" class="photo-file" />
+            <p id="edit-photo-status" class="field-note" role="status">Pick from your gallery, or choose an emoji below.</p>
+          </div>
+        </div>
         <div class="avatar-grid" id="edit-avatar-grid"></div>
+        <p class="field-note">Selecting an emoji replaces your photo. Photos are visible to signed-in students.</p>
       </div>
       <div class="form-group">
         <label for="edit-university-select">University / Institution</label>
@@ -349,18 +397,20 @@
     </div>
   </div>
 
-  <!-- ==================== SAVE ID MODAL ==================== -->
-  <div id="modal-save-id" class="modal hidden">
+  <div id="modal-reset" class="modal hidden">
     <div class="modal-box">
-      <div class="modal-icon">◈</div>
-      <h2>Save your recovery code</h2>
-      <p class="modal-sub">You’re signed in on this browser. Save this private code to restore your profile on another device or after logging out. We cannot recover a lost code.</p>
-      <div class="id-display" id="display-recovery-code" style="overflow-wrap:anywhere;user-select:all"></div>
-      <div class="save-id-actions">
-        <button class="btn-secondary half" onclick="copyRecoveryCode(this)">Copy code</button>
-        <button class="btn-secondary half" onclick="downloadRecoveryCode()">Download code</button>
-      </div>
-      <button class="btn-primary w-full" onclick="hideModal('modal-save-id'); showPage('page-gallery')">Confirmed — Enter the Network →</button>
+      <button class="modal-close" onclick="hideModal('modal-reset')">✕</button>
+      <h2>Reset your PIN</h2>
+      <p class="modal-sub">Choose a new app PIN, then unlock the passkey you saved when you joined. Your email and city cannot reset your account.</p>
+      <form onsubmit="event.preventDefault(); handlePinReset()">
+        <label for="reset-pin">New four-digit app PIN</label>
+        <input type="password" id="reset-pin" class="field pin-field" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" required />
+        <label for="reset-pin-confirm">Confirm new PIN</label>
+        <input type="password" id="reset-pin-confirm" class="field pin-field" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" required />
+        <p id="reset-error" class="error-msg hidden" role="alert"></p>
+        <button id="reset-submit" class="btn-primary w-full" type="submit">Verify passkey &amp; reset PIN →</button>
+      </form>
+      <p class="field-note">Use a device or password manager with your saved passkey. Without that passkey, we cannot reset your PIN.</p>
     </div>
   </div>
 
@@ -369,18 +419,35 @@
     <div class="modal-box">
       <div class="modal-icon">◈</div>
       <h2>Log out?</h2>
-      <p class="modal-sub">You’ll need your saved recovery code to sign in again. Make sure you have it before logging out.</p>
+      <p class="modal-sub">You can sign in again with your university email and four-digit app PIN. Your passkey can reset a forgotten PIN.</p>
       <button class="btn-danger w-full" onclick="confirmLogout()">Yes, log out</button>
       <button class="btn-ghost-dark w-full" onclick="hideModal('modal-logout')">Cancel</button>
     </div>
   </div>
 
+  <div id="connection-status" class="connection-status" role="status" hidden>You’re offline. Connect to sign in, load students or save changes.</div>
+  <div id="app-toast" class="app-toast hidden" role="status"></div>
+  <button id="app-update" class="app-update" hidden>Update available — reload app</button>
+  <div id="modal-install" class="modal hidden">
+    <div class="modal-box">
+      <button class="modal-close" onclick="hideModal('modal-install')">✕</button>
+      <h2>Your study crew, one tap away</h2>
+      <p class="modal-sub">Install My Study Friends on your home screen. No app store download needed.</p>
+      <p class="install-instruction"><strong>iPhone / iPad</strong><br />Open in Safari, tap Share, then Add to Home Screen. Turn on Open as Web App if offered.</p>
+      <p class="install-instruction"><strong>Android</strong><br />Open the browser menu and choose Install app or Add to Home screen.</p>
+      <p class="install-instruction"><strong>Computer</strong><br />Use your browser’s install icon or app menu when available.</p>
+      <p class="field-note">You’ll need internet to sign in, see students and save changes.</p>
+    </div>
+  </div>
   <datalist id="city-options"></datalist>
   <script src="/js/universities.js"></script>
   <script src="/js/network-model.js"></script>
   <script src="/js/network-view.js"></script>
   <script src="/js/avatars.js"></script>
+  <script src="/js/account.js"></script>
+  <script src="/js/photos.js"></script>
   <script src="/js/app.js"></script>
+  <script src="/js/pwa.js"></script>
   <script>
     const canvas = document.getElementById('grid-canvas');
     if (canvas) {

@@ -172,7 +172,7 @@ function buildClusterGraph(section, group, profiles, cards) {
     element.type = 'button';
     element.className = 'graph-student';
     element.setAttribute('aria-label', `View ${profile.firstName}'s profile`);
-    const avatar = document.createElement('span'); avatar.className = 'graph-avatar'; avatar.textContent = getAvatarEmoji(profile.avatar);
+    const avatar = document.createElement('span'); avatar.className = 'graph-avatar'; renderAvatar(avatar, profile);
     const name = document.createElement('strong'); name.textContent = profile.firstName;
     const subject = document.createElement('small'); subject.textContent = (profile.subjects || []).slice(0, 2).join(' · ') || 'Say hello';
     element.append(avatar, name, subject);

@@ -3,7 +3,11 @@
   functions = "netlify/functions"
   command = "npm install"
 
+[build.environment]
+  NODE_VERSION = "22"
+
 [functions]
+  external_node_modules = ["sharp"]
   node_bundler = "esbuild"
 
 [[headers]]
@@ -12,3 +16,14 @@
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Content-Type = "application/manifest+json"
+    Cache-Control = "no-cache"

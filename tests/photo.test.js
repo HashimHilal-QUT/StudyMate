@@ -1,0 +1,26 @@
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const crypto = require('node:crypto');
+const sharp = require('sharp');
+const auth = require('../netlify/functions/lib/auth');
+const { database, blobStore, loadFunction } = require('./helpers/memory.cjs');
+test('photos require a session, reject disguised files, re-encode images, and support removal', async () => {
+  const db = database(), store = blobStore(), userId = crypto.randomUUID();
+  await db.createEntity({ partitionKey: 'account', rowKey: 'owner', userId, authVersion: 'v1' });
+  await db.createEntity({ partitionKey: 'profile', rowKey: userId, accountKey: 'owner', avatar: 'avatar_owl' });
+  const cookie = await auth.issueSession(db, userId, 'v1');
+  const headers = { cookie: cookie.split(';')[0] };
+  const handler = loadFunction('photo', db, { '@azure/storage-blob': store.sdk });
+  assert.equal((await handler({ httpMethod: 'GET', queryStringParameters: { userId } })).statusCode, 401);
+  assert.equal((await handler({ httpMethod: 'POST', headers, body: JSON.stringify({ photo: 'data:image/jpeg;base64,SGVsbG8=' }) })).statusCode, 400);
+  const image = await sharp({ create: { width: 600, height: 800, channels: 3, background: '#00ffc8' } }).jpeg().toBuffer();
+  const saved = await handler({ httpMethod: 'POST', headers, body: JSON.stringify({ photo: `data:image/jpeg;base64,${image.toString('base64')}` }) });
+  assert.equal(saved.statusCode, 200);
+  assert.ok(JSON.parse(saved.body).photoUrl.startsWith('/.netlify/functions/photo?'));
+  const fetched = await handler({ httpMethod: 'GET', headers, queryStringParameters: { userId } });
+  assert.equal(fetched.headers['Cache-Control'], 'private, no-store');
+  const metadata = await sharp(Buffer.from(fetched.body, 'base64')).metadata();
+  assert.equal(metadata.width, 384); assert.equal(metadata.height, 384); assert.equal(metadata.exif, undefined);
+  const removed = await handler({ httpMethod: 'POST', headers, body: JSON.stringify({ remove: true }) });
+  assert.equal(removed.statusCode, 200); assert.equal(store.blobs.size, 0);
+});

@@ -1,116 +1,45 @@
+const crypto = require('node:crypto');
+const { generateRegistrationOptions } = require('@simplewebauthn/server');
 const auth = require('./lib/auth');
-// netlify/functions/register.js
-// Creates a new student profile in Azure Table Storage
-
-const { TableClient, AzureNamedKeyCredential } = require("@azure/data-tables");
-const { v4: uuidv4 } = require("uuid");
-
-const ACCOUNT_NAME = process.env.AZURE_STORAGE_ACCOUNT_NAME;
-const ACCOUNT_KEY = process.env.AZURE_STORAGE_ACCOUNT_KEY;
-const TABLE_NAME = "studymatedb";
-
-function getTableClient() {
-  const credential = new AzureNamedKeyCredential(ACCOUNT_NAME, ACCOUNT_KEY);
-  return new TableClient(
-    `https://${ACCOUNT_NAME}.table.core.windows.net`,
-    TABLE_NAME,
-    credential
-  );
-}
-
-exports.handler = async (event, context) => {
-  const headers = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Content-Type": "application/json",
-  };
-
-  if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 200, headers, body: "" };
-  }
-
-  if (event.httpMethod !== "POST") {
-    return { statusCode: 405, headers, body: JSON.stringify({ error: "Method not allowed" }) };
-  }
-
+exports.handler = async event => {
+  if (event.httpMethod !== 'POST') return auth.response(405, { error: 'Method not allowed' });
+  if (!auth.sameOrigin(event)) return auth.response(403, { error: 'Request not allowed' });
   try {
-    const body = JSON.parse(event.body);
-    const { firstName, avatar, subjects, studyStyle, availability, university, city, bio, contact } = body;
-
-    if ((city != null && typeof city !== "string") || (university != null && typeof university !== "string")) {
-      return auth.response(400, { error: "City and university must be text." });
-    }
-
-    // Validate required fields
-    if (!firstName || !avatar) {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({ error: "firstName and avatar are required" }),
-      };
-    }
-
-    // Sanitise firstName - only allow letters and spaces (PII protection)
-    const cleanFirstName = firstName.trim().replace(/[^a-zA-Z\s]/g, "").substring(0, 30);
-    if (!cleanFirstName) {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({ error: "Invalid firstName" }),
-      };
-    }
-
-    const userId = uuidv4();
-    const client = getTableClient();
-
-    // Validate contact fields - only social handles/usernames, not full personal URLs
+    let body;
+    try { body = JSON.parse(event.body || '{}'); } catch { return auth.response(400, { error: 'Invalid request' }); }
+    const { firstName, avatar, subjects, studyStyle, availability, university, city, bio, contact, pin } = body;
+    const email = auth.normalizeEmail(body.email);
+    if (!email) return auth.response(400, { error: 'Enter your university email ending in .edu.au.' });
+    if (!auth.validPin(pin)) return auth.response(400, { error: 'Choose a PIN with exactly four digits.' });
+    if (typeof firstName !== 'string' || !firstName.trim() || !/^avatar_[a-z]+$/.test(avatar || '')) return auth.response(400, { error: 'First name and an avatar or photo are required.' });
+    if ([city, university, studyStyle, availability, bio].some(v => v != null && typeof v !== 'string') ||
+        (subjects != null && (!Array.isArray(subjects) || subjects.length > 8 || subjects.some(s => typeof s !== 'string')))) return auth.response(400, { error: 'Please check your profile fields.' });
+    const cleanName = firstName.trim().replace(/[^\p{L}\p{M}\s'-]/gu, '').slice(0, 30);
+    if (!cleanName) return auth.response(400, { error: 'Please enter your first name.' });
+    const db = auth.client();
+    if (!await auth.takeAttempt(db, `register-${auth.ipKey(event)}`, 100, 3600)) return auth.response(429, { error: 'Too many sign-up attempts. Please try later.' }, { 'Retry-After': '3600' });
+    const accountKey = auth.emailKey(email);
+    if (await auth.find(db, 'account', accountKey)) return auth.response(409, { error: 'Unable to create this account. Try signing in or using your passkey to reset your PIN.' });
+    const userId = crypto.randomUUID();
     const safeContact = {};
-    if (contact?.instagram) safeContact.instagram = contact.instagram.replace(/[^a-zA-Z0-9._]/g, "").substring(0, 30);
-    if (contact?.linkedin) safeContact.linkedin = contact.linkedin.replace(/[^a-zA-Z0-9._-]/g, "").substring(0, 50);
-    if (contact?.facebook) safeContact.facebook = contact.facebook.replace(/[^a-zA-Z0-9._-]/g, "").substring(0, 50);
-    if (contact?.discord) safeContact.discord = contact.discord.substring(0, 50);
-
-    const entity = {
-      partitionKey: "profile",
-      rowKey: userId,
-      firstName: cleanFirstName,
-      avatar: avatar, // avatar key (e.g. "avatar_1") stored, not PII
-      subjects: JSON.stringify(subjects || []),
-      studyStyle: studyStyle || "",
-      availability: availability || "",
-      university: (university || "").trim().substring(0, 100),
-      city: (city || "").trim().substring(0, 60),
-      bio: (bio || "").substring(0, 200),
-      contact: JSON.stringify(safeContact),
-      createdAt: new Date().toISOString(),
-    };
-
-    const recoveryCode = auth.newRecoveryCode();
-    await client.createEntity(entity);
-    const recoveryHash = auth.hash(auth.normalizeCode(recoveryCode));
-    let sessionCookie;
-    try {
-      await client.createEntity({ partitionKey: "recovery", rowKey: recoveryHash, userId });
-      sessionCookie = await auth.issueSession(client, userId);
-    } catch (err) {
-      await Promise.allSettled([
-        client.deleteEntity("profile", userId),
-        client.deleteEntity("recovery", recoveryHash),
-      ]);
-      throw err;
+    for (const key of ['instagram', 'linkedin', 'facebook', 'discord']) {
+      if (typeof contact?.[key] === 'string') safeContact[key] = contact[key].replace(key === 'discord' ? /[\u0000-\u001f]/g : /[^a-zA-Z0-9._-]/g, '').slice(0, 50);
     }
-
-    return {
-      statusCode: 201,
-      headers: { ...headers, "Cache-Control": "no-store", "Set-Cookie": sessionCookie },
-      body: JSON.stringify({ userId, recoveryCode, message: "Profile created successfully" }),
-    };
+    const profile = { partitionKey: 'profile', rowKey: userId, accountKey, firstName: cleanName, avatar,
+      subjects: JSON.stringify((subjects || []).map(s => s.trim().slice(0, 60))), studyStyle: studyStyle || '',
+      availability: availability || '', university: (university || '').trim().slice(0, 100), city: (city || '').trim().slice(0, 60),
+      bio: (bio || '').slice(0, 200), contact: JSON.stringify(safeContact), createdAt: new Date().toISOString() };
+    const { rpID } = auth.origin();
+    const options = await generateRegistrationOptions({ rpName: 'My Study Friends', rpID,
+      userID: new Uint8Array(Buffer.from(userId)), userName: `${cleanName} · ${userId.slice(0, 8)}`,
+      userDisplayName: cleanName, attestationType: 'none',
+      authenticatorSelection: { residentKey: 'required', userVerification: 'required' }, supportedAlgorithmIDs: [-7, -257] });
+    const pinFields = await auth.newPin(pin);
+    const challengeId = await auth.saveChallenge(db, { purpose: 'register', challenge: options.challenge,
+      accountKey, userId, profile: JSON.stringify(profile), ...pinFields });
+    return auth.response(200, { options, challengeId });
   } catch (err) {
-    console.error("register error:", err);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ error: "Failed to create profile", details: err.message }),
-    };
+    console.error('Registration failed:', err.name);
+    return auth.response(500, { error: 'Could not start registration. Please try again.' });
   }
 };

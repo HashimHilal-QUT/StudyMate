@@ -42,18 +42,7 @@ exports.handler = async (event, context) => {
     });
 
     for await (const entity of profilesIter) {
-      profiles.push({
-        id: entity.rowKey,
-        firstName: entity.firstName,
-        avatar: entity.avatar,
-        subjects: entity.subjects ? JSON.parse(entity.subjects) : [],
-        studyStyle: entity.studyStyle,
-        availability: entity.availability,
-        university: entity.university,
-        city: entity.city || "",
-        bio: entity.bio,
-        contact: entity.contact ? JSON.parse(entity.contact) : {},
-      });
+      profiles.push(auth.publicProfile(entity));
     }
 
     const filteredProfiles = profiles.filter(p => p.id !== userId);

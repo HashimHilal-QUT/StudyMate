@@ -1091,3 +1091,25 @@ button:focus-visible, [role="button"]:focus-visible, select:focus-visible, .grap
   .app-header { flex-wrap: wrap; gap: 10px; }
   .header-search { display: block; order: 3; flex-basis: 100%; }
 }
+
+/* Installed app, PIN forms and profile photo selection. */
+.pin-field { letter-spacing: .5em; font-size: 20px; }
+.modal-box form label { display: block; text-align: left; font-size: 12px; color: var(--text-soft); margin-bottom: 8px; }
+.photo-picker { display: flex; align-items: center; gap: 16px; margin: 12px 0 18px; }
+.photo-preview { width: 84px; height: 84px; flex-shrink: 0; border: 1px solid var(--border-hi); border-radius: 50%; overflow: hidden; display: grid; place-items: center; font-size: 38px; background: var(--surface); }
+.photo-preview img, .student-photo { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
+.photo-upload-label { display: inline-block !important; cursor: pointer; padding: 10px 14px; border: 1px solid var(--border-hi); border-radius: 8px; color: var(--cyan) !important; }
+.photo-file { width: 100%; font: inherit; font-size: 12px; color: var(--text-soft); margin-top: 8px; }
+.badge-avatar:has(.student-photo) { width: 64px; height: 64px; margin: 0 auto 10px; }
+.graph-avatar:has(.student-photo) { width: 30px; height: 30px; }
+.profile-avatar:has(.student-photo) { width: 100px; height: 100px; }
+.connection-status { position: fixed; top: 0; left: 0; right: 0; z-index: 2100; padding: 10px 16px; background: #543612; color: #fff4d2; font-size: 13px; text-align: center; }
+.app-toast, .app-update { position: fixed; bottom: max(20px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); z-index: 2200; padding: 14px 20px; max-width: calc(100vw - 32px); width: max-content; background: var(--raised); border: 1px solid var(--cyan); color: var(--text); border-radius: 12px; box-shadow: var(--shadow); font: inherit; font-size: 13px; }
+.app-update { cursor: pointer; }
+.install-instruction { font-size: 13px; color: var(--text-soft); line-height: 1.7; margin-bottom: 16px; text-align: left; }
+.install-instruction strong { color: var(--text); }
+.install-app-button { margin-left: 0; }
+@media (display-mode: standalone) {
+  .app-header, .reg-header { padding-top: max(12px, env(safe-area-inset-top)); }
+  .gallery-content { padding-bottom: max(60px, env(safe-area-inset-bottom)); }
+}

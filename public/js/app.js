@@ -14,9 +14,11 @@ const STATE = {
 // ========================
 function showPage(pageId) {
   if (pageId !== "page-gallery") stopNetworkAnimation();
-  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".page").forEach(p => {
+    p.classList.remove("active"); p.inert = true; p.setAttribute("aria-hidden", "true");
+  });
   const page = document.getElementById(pageId);
-  if (page) page.classList.add("active");
+  if (page) { page.classList.add("active"); page.inert = false; page.setAttribute("aria-hidden", "false"); }
   if (pageId === "page-gallery") loadGallery();
 }
 
@@ -28,6 +30,8 @@ function showLoginPrompt() { showModal("modal-login"); }
 // BOOT
 // ========================
 document.addEventListener("DOMContentLoaded", async () => {
+  document.querySelectorAll(".page").forEach(p => { p.inert = !p.classList.contains("active"); p.setAttribute("aria-hidden", String(p.inert)); });
+  initPhotoPickers();
   initUniversityPickers();
   initAvatarGrid();
   initPillSelects();
@@ -51,25 +55,24 @@ document.addEventListener("DOMContentLoaded", async () => {
 // LOGIN
 // ========================
 async function handleLogin() {
-  const input = document.getElementById("login-id");
+  const email = document.getElementById("login-email");
+  const pin = document.getElementById("login-pin");
   const error = document.getElementById("login-error");
   const button = document.getElementById("login-submit");
   error.classList.add("hidden");
-  if (!input.value.trim()) { input.focus(); return; }
+  if (!validStudentEmail(email.value) || !/^\d{4}$/.test(pin.value)) {
+    error.textContent = "Enter your .edu.au email and four-digit PIN.";
+    error.classList.remove("hidden"); return;
+  }
   button.disabled = true;
   try {
-    const res = await fetch("/.netlify/functions/session", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ recoveryCode: input.value.trim() }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Could not restore your profile.");
+    const data = await accountRequest("session", { email: email.value.trim(), pin: pin.value });
     STATE.userId = data.userId;
-    input.value = "";
+    pin.value = "";
     hideModal("modal-login");
     showPage("page-gallery");
   } catch (err) {
-    error.textContent = err.message || "Could not connect. Please try again.";
+    error.textContent = accountError(err);
     error.classList.remove("hidden");
   } finally { button.disabled = false; }
 }
@@ -88,7 +91,12 @@ async function confirmLogout() {
     document.getElementById("network-groups").replaceChildren();
     document.getElementById("gallery-grid").innerHTML = "";
     document.getElementById("modal-contact").textContent = "";
-    document.getElementById("display-recovery-code").textContent = "";
+    document.getElementById("login-pin").value = "";
+    for (const prefix of ['reg', 'edit']) {
+      photoChoices[prefix] = { data: null, existing: null, remove: false };
+      photoPreview(prefix, null);
+      document.getElementById(`${prefix}-photo`).value = '';
+    }
     hideModal("modal-logout");
     showPage("page-landing");
   } catch { alert("Could not log out. Please try again."); }
@@ -110,8 +118,9 @@ function initAvatarGrid() {
     btn.title = av.label;
     btn.textContent = av.emoji;
     btn.onclick = () => {
-      document.querySelectorAll(".avatar-option").forEach(b => b.classList.remove("selected"));
+      grid.querySelectorAll(".avatar-option").forEach(b => b.classList.remove("selected"));
       btn.classList.add("selected");
+      chooseEmoji("reg", av.key);
     };
     grid.appendChild(btn);
   });
@@ -175,33 +184,37 @@ async function handleRegister() {
 
   document.getElementById("reg-error").classList.add("hidden");
   if (!firstName)      { showError("Please enter your first name."); return; }
-  if (!selectedAvatar) { showError("Please choose an avatar."); return; }
+  if (!selectedAvatar && !photoChoices.reg.data) { showError("Please choose a photo or avatar."); return; }
+  const email = document.getElementById("reg-email").value.trim();
+  const pin = document.getElementById("reg-pin").value;
+  if (!validStudentEmail(email)) { showError("Enter your university email ending in .edu.au."); return; }
+  if (!/^\d{4}$/.test(pin) || pin !== document.getElementById("reg-pin-confirm").value) { showError("Enter the same four-digit PIN in both fields."); return; }
+  if (!passkeysSupported()) { showError("Use an up-to-date browser with passkey support to join."); return; }
+  const avatar = selectedAvatar?.dataset.key || "avatar_owl";
 
   const btn = document.getElementById("reg-submit");
   btn.disabled = true;
   btn.innerHTML = "<span>Initialising…</span>";
 
   try {
-    const res = await fetch("/.netlify/functions/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ firstName, avatar: selectedAvatar.dataset.key, subjects, studyStyle, availability, university, city, bio, contact: { instagram, linkedin, facebook, discord } }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Registration failed");
-
-    STATE.userId  = data.userId;
-    STATE.myAvatar = selectedAvatar.dataset.key;
-
-
-    document.getElementById("display-recovery-code").textContent = data.recoveryCode;
-    showModal("modal-save-id");
-    btn.disabled = false;
-    btn.innerHTML = "<span>Initialise &amp; Enter the Network →</span>";
+    const pending = await accountRequest("register", { email, pin, firstName, avatar, subjects, studyStyle,
+      availability, university, city, bio, contact: { instagram, linkedin, facebook, discord } });
+    btn.innerHTML = "<span>Save your passkey…</span>";
+    const credential = await createPasskey(pending.options);
+    const data = await accountRequest("passkey", { action: "complete-registration", challengeId: pending.challengeId, credential });
+    STATE.userId = data.userId;
+    STATE.myAvatar = avatar;
+    document.getElementById("reg-pin").value = "";
+    document.getElementById("reg-pin-confirm").value = "";
+    document.getElementById("reg-email").value = "";
+    try { await saveProfilePhoto("reg"); }
+    catch { showToast("Your profile is ready. Photo upload failed; please add it from Edit Profile."); }
+    showPage("page-gallery");
   } catch (err) {
-    showError(err.message || "Something went wrong. Please try again.");
+    showError(accountError(err));
+  } finally {
     btn.disabled = false;
-    btn.innerHTML = "<span>Initialise &amp; Enter the Network →</span>";
+    btn.innerHTML = "<span>Create profile &amp; save passkey →</span>";
   }
 }
 
@@ -269,7 +282,7 @@ function buildBadge(profile) {
     .map(s => `<span class="badge-subject">${escHtml(s)}</span>`).join("");
 
   card.innerHTML = `
-    <span class="badge-avatar">${getAvatarEmoji(profile.avatar)}</span>
+    <span class="badge-avatar"></span>
     <div class="badge-name">${escHtml(profile.firstName)}</div>
     <div class="badge-uni">${escHtml(profile.university || "University not shared")}</div>
     ${profile.city ? `<div class="badge-city">⌖ ${escHtml(profile.city)}</div>` : ""}
@@ -280,6 +293,7 @@ function buildBadge(profile) {
       <span class="badge-cta">VIEW →</span>
     </div>
   `;
+  renderAvatar(card.querySelector(".badge-avatar"), profile);
   return card;
 }
 
@@ -312,7 +326,7 @@ function filterGallery() {
 // PROFILE DETAIL MODAL
 // ========================
 function openProfile(profile) {
-  document.getElementById("modal-avatar").textContent = getAvatarEmoji(profile.avatar);
+  renderAvatar(document.getElementById("modal-avatar"), profile);
   document.getElementById("modal-name").textContent   = profile.firstName;
   document.getElementById("modal-uni").textContent    = [profile.university, profile.city].filter(Boolean).join(" · ");
 
@@ -365,25 +379,6 @@ function escHtml(str) {
     .replace(/"/g, "&quot;");
 }
 
-// Recovery codes are shown once and never saved in browser storage.
-async function copyRecoveryCode(button) {
-  try {
-    await navigator.clipboard.writeText(document.getElementById("display-recovery-code").textContent);
-    button.textContent = "Copied!";
-    setTimeout(() => button.textContent = "Copy code", 2000);
-  } catch { alert("Please select and copy the recovery code manually."); }
-}
-function downloadRecoveryCode() {
-  const code = document.getElementById("display-recovery-code").textContent;
-  const blob = new Blob([`My Study Friends recovery code\n\n${code}\n\nKeep this private. Restore your profile at https://mystudyfriends.netlify.app/\n`], { type: "text/plain" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "my-study-friends-recovery-code.txt";
-  link.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
 // ================================================
 // PROFILE MODAL — CLICK BACKDROP TO CLOSE
 // ================================================
@@ -430,6 +425,9 @@ function loadEditProfile() {
 
     // Avatar grid
     initEditAvatarGrid(profile.avatar);
+    photoChoices.edit = { data: null, existing: profile.photoUrl || null, remove: false };
+    photoPreview("edit", profile.photoUrl, getAvatarEmoji(profile.avatar));
+    document.getElementById("edit-photo-status").textContent = profile.photoUrl ? "Your current profile photo." : "Choose a photo or emoji.";
 
     // University
     setUniversity("edit", profile.university || "");
@@ -518,6 +516,7 @@ function initEditAvatarGrid(selectedKey) {
     btn.onclick = () => {
       grid.querySelectorAll(".avatar-option").forEach(b => b.classList.remove("selected"));
       btn.classList.add("selected");
+      chooseEmoji("edit", av.key);
     };
     grid.appendChild(btn);
   });
@@ -579,6 +578,8 @@ async function handleEditProfile() {
 
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Update failed");
+
+    await saveProfilePhoto("edit");
 
     // Update stored avatar
     STATE.myAvatar = selectedAvatar.dataset.key;

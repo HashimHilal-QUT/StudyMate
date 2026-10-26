@@ -36,7 +36,7 @@ exports.handler = async (event) => {
 
     const client = getTableClient();
     const userId = await auth.authenticate(event, client);
-    if (!userId) return auth.response(401, { error: "Please restore your profile before editing." });
+    if (!userId) return auth.response(401, { error: "Please sign in before editing." });
 
     // Fetch existing to preserve firstName (name is locked)
     let existing;
@@ -56,6 +56,8 @@ exports.handler = async (event) => {
     const updated = {
       partitionKey:  "profile",
       rowKey:        userId,
+      accountKey:    existing.accountKey,
+      photoVersion:  existing.photoVersion || "",
       firstName:     existing.firstName,    // immutable
       avatar:        avatar || existing.avatar,
       subjects:      JSON.stringify(subjects || []),
@@ -69,7 +71,7 @@ exports.handler = async (event) => {
       updatedAt:     new Date().toISOString(),
     };
 
-    await client.updateEntity(updated, "Replace");
+    await client.updateEntity(updated, "Replace", { etag: existing.etag });
 
     return { statusCode: 200, headers, body: JSON.stringify({ success: true }) };
   } catch (err) {

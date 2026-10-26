@@ -1,36 +1,33 @@
 const auth = require('./lib/auth');
 exports.handler = async event => {
   if (!['GET', 'POST', 'DELETE'].includes(event.httpMethod)) return auth.response(405, { error: 'Method not allowed' });
+  if (!auth.sameOrigin(event)) return auth.response(403, { error: 'Request not allowed' });
   try {
     const db = auth.client();
     if (event.httpMethod === 'DELETE') {
       const token = auth.sessionToken(event);
-      if (token) {
-        try { await db.deleteEntity('session', auth.hash(token)); }
-        catch (err) { if (err.statusCode !== 404) throw err; }
-      }
+      if (token && await auth.find(db, 'session', auth.hash(token))) await db.deleteEntity('session', auth.hash(token));
       return auth.response(200, { success: true }, { 'Set-Cookie': auth.cookie('', 0) });
     }
     if (event.httpMethod === 'POST') {
       let body;
       try { body = JSON.parse(event.body || '{}'); } catch { return auth.response(400, { error: 'Invalid request' }); }
-      const code = auth.normalizeCode(body.recoveryCode);
-      if (!code) return auth.response(401, { error: 'Recovery code not recognised. Check your saved code.' });
-      let credential;
-      try { credential = await db.getEntity('recovery', auth.hash(code)); }
-      catch (err) { if (err.statusCode !== 404) throw err; }
-      if (!credential) return auth.response(401, { error: 'Recovery code not recognised. Check your saved code.' });
-      await db.getEntity('profile', credential.userId);
-      return auth.response(200, { userId: credential.userId }, { 'Set-Cookie': await auth.issueSession(db, credential.userId) });
+      const email = auth.normalizeEmail(body.email);
+      if (!email || !auth.validPin(body.pin)) return auth.response(401, { error: 'Check your university email and four-digit PIN.' });
+      const key = auth.emailKey(email);
+      if (!await auth.takeAttempt(db, `login-ip-${auth.ipKey(event)}`, 120) || !await auth.takeAttempt(db, `login-${key}`, 5)) {
+        return auth.response(429, { error: 'Too many attempts. Wait 15 minutes, or use your passkey to reset your PIN now.' }, { 'Retry-After': '900' });
+      }
+      const account = await auth.find(db, 'account', key);
+      if (!await auth.verifyPin(body.pin, account)) return auth.response(401, { error: 'Check your university email and four-digit PIN.' });
+      await db.deleteEntity('limit', `login-${key}`);
+      return auth.response(200, { userId: account.userId }, { 'Set-Cookie': await auth.issueSession(db, account.userId, account.authVersion) });
     }
     const userId = await auth.authenticate(event, db);
-    if (!userId) return auth.response(401, { error: 'Please restore your profile with your recovery code.' });
-    const p = await db.getEntity('profile', userId);
-    return auth.response(200, { userId, profile: { id: userId, firstName: p.firstName, avatar: p.avatar,
-      subjects: JSON.parse(p.subjects || '[]'), studyStyle: p.studyStyle, availability: p.availability,
-      university: p.university, city: p.city || "", bio: p.bio, contact: JSON.parse(p.contact || '{}') } });
+    if (!userId) return auth.response(401, { error: 'Please sign in with your university email and PIN.' });
+    return auth.response(200, { userId, profile: auth.publicProfile(await db.getEntity('profile', userId)) });
   } catch (err) {
-    console.error('session error:', err);
+    console.error('Session failed:', err.name);
     return auth.response(500, { error: 'Could not access your profile. Please try again.' });
   }
 };
